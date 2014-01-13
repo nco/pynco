@@ -1,7 +1,5 @@
 import os, re, subprocess, tempfile, random, string
 
-
-
 def auto_doc(tool, nco_self):
     """Generate the __doc__ string of the decorated function by calling the nco help command"""
     def desc(func):
@@ -89,14 +87,12 @@ class Nco(object):
           operator.append(arg.__str__())
 
       #build the nco command
-      #1. the nco command
-      cmd = [self.NCO]
+      #1. the nco operator
+      cmd = operator
       #2. options
       if 'options' in kwargs:
           cmd += kwargs['options'].split()
-      #3. operator(s)
-      cmd.append(','.join(operator))
-      #4. input files or operators
+      #3. input files or operators
       if 'input' in kwargs:
         if isinstance(kwargs["input"], basestring):
             cmd.append(kwargs["input"])
