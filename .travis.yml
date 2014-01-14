@@ -4,12 +4,26 @@ python:
   - "2.7"
   - "3.2"
   - "3.3"
-  # does not have headers provided, please ask https://launchpad.net/~pypy/+archive/ppa
-  # maintainers to fix their pypy-dev package.
   - "pypy"
+  
+# allow importing from site-packages,
+# so apt-get python-x works for system pythons
+# That's 2.7/3.2 on Ubuntu 12.04
+virtualenv:
+  system_site_packages: true
+
+before_install:
+  - echo "before_install"
+  - echo $VIRTUAL_ENV
+  - df -h
+  - date
+  - ci/before_install.sh
+  - python -V
+
 # command to install dependencies
 install:
-  - pip install .
-  - pip install -r requirements.txt
+  - echo "install"
+  - ci/install.sh
+
 # command to run tests
-script: nosetests 
+script: pytest 
