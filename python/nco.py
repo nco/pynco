@@ -21,7 +21,7 @@ class NCOException(Exception):
 
 class Nco(object):
 
-  def __init__(self, returnCdf=False, returnNoneOnError=False, forceOutput=True, cdfMod='scipy', debug=False):
+  def __init__(self, returnCdf=False, returnNoneOnError=False, forceOutput=True, cdfMod='scipy', debug=False, **kwargs):
 
     operators = ['ncap2', 'ncatted', 'ncbo', 'nces', 'ncecat', 'ncflint', 'ncks',
                  'ncpdq', 'ncra', 'ncrcat', 'ncrename', 'ncwa']
@@ -39,6 +39,8 @@ class Nco(object):
     self.cdfMod                 = cdfMod
     self.debug                  = debug
     self.outputOperatorsPattern = '(diff|info|output|griddes|zaxisdes|show|ncode|ndate|nlevel|nmon|nvar|nyear|ntime|npar|gradsdes|pardes)'
+
+    self.options = kwargs
 
   def __dir__(self):
     res = dir(type(self)) + list(self.__dict__.keys())
@@ -78,35 +80,59 @@ class Nco(object):
   def __getattr__(self, method_name):
 
     @auto_doc(method_name, self)
-    def get(self, *args, **kwargs):
+    def get(self, **kwargs):
       operator          = [method_name]
       operatorPrintsOut = False
 
-      if args.__len__() != 0:
-        for arg in args:
-          operator.append(arg.__str__())
+      options = kwargs.pop('options', "")
+      input = kwargs.pop("input", "")
+      force = kwargs.pop("force", self.forceOutput)
+      output = kwargs.pop("output", None)
+      environment = kwargs.pop("env", None)
+      returnCdf = kwargs.pop("returnCdf", False)
+      returnArray = kwargs.pop("returnArray", False)
+      returnMaArray = kwargs.pop("returnMaArray", False)
 
       #build the nco command
       #1. the nco operator
       cmd = operator
-      #2. options
-      if 'options' in kwargs:
-          cmd += kwargs['options'].split()
+      #2a. options keyword arg
+      if 'options':
+          cmd.append(options.split())
+      if kwargs:
+        #2b. all other keyword args become options
+        for key, val in kwargs.iteritems():
+          if val and type(val)==bool:
+            cmd.append("--"+key)
+          else:
+            cmd.append("--{0}={1}".format(key, val))
+      #2c. Global options come in
+      for key, val in self.options.iteritems():
+        if val and type(val)==bool:
+          cmd.append("--"+key)
+        else:
+          cmd.append("--{0}={1}".format(key, val))
       #3. input files or operators
-      if 'input' in kwargs:
-        if isinstance(kwargs["input"], basestring):
-            cmd.append(kwargs["input"])
+      if input:
+        if isinstance(input, basestring):
+            cmd.append(input)
         else:
             #we assume it's either a list, a tuple or any iterable.
-            cmd += kwargs["input"]
-
-      if not kwargs.__contains__("force"):
-        kwargs["force"] = self.forceOutput
+            cmd.extend(input)
+      else:
+        raise NCOException('Must include input keyword argument to all nco commands')
+      # 4. output file
+      if output:
+        if isinstance(output, basestring):
+            cmd.append(output)
+        else:
+            #we assume it's either a list, a tuple or any iterable.
+            cmd.extend(output)
 
       if operatorPrintsOut:
         retvals = self.call(cmd)
         if ( not self.hasError(method_name, cmd, retvals) ):
-          r = map(string.strip,retvals["stdout"].split(os.linesep))
+          r = map(string.strip, retvals["stdout"].split(os.linesep))
           return r[:len(r)-1]
         else:
           if self.returnNoneOnError:
@@ -114,40 +140,32 @@ class Nco(object):
           else:
             raise NCOException(**retvals)
       else:
-        if kwargs["force"] or \
-           (kwargs.__contains__("output") and not os.path.isfile(kwargs["output"])):
-          if not kwargs.__contains__("output") or None == kwargs["output"]:
-            kwargs["output"] = self.tempfile.path()
+        if force and not os.path.isfile(output):
+          if not output:
+            output = self.tempfile.path()
 
-          cmd.append(kwargs["output"])
-          if kwargs.__contains__("env"):
-            environment = kwargs["env"]
-          else:
-            environment = None
+          cmd.append(output)
 
           retvals = self.call(cmd, environment=environment)
-          if self.hasError(method_name,cmd, retvals):
+          if self.hasError(method_name, cmd, retvals):
             if self.returnNoneOnError:
               return None
             else:
               raise NCOException(**retvals)
         else:
           if self.debug:
-            print("Use existing file'"+kwargs["output"]+"'")
+            print("Use existing file'"+output+"'")
 
-      if not kwargs.__contains__("returnCdf"):
-        kwargs["returnCdf"] = False
-
-      if not None == kwargs.get("returnArray"):
-        return self.readArray(kwargs["output"], kwargs["returnArray"])
-      elif not None == kwargs.get("returnMaArray"):
-        return self.readMaArray(kwargs["output"], kwargs["returnMaArray"])
-      elif self.returnCdf or kwargs["returnCdf"]:
+      if returnArray:
+        return self.readArray(output, returnArray)
+      elif returnMaArray:
+        return self.readMaArray(output, returnMaArray)
+      elif self.returnCdf or returnCdf:
         if not self.returnCdf:
           self.loadCdf()
-        return self.readCdf(kwargs["output"])
+        return self.readCdf(output)
       else:
-        return kwargs["output"]
+        return output
 
     if ((method_name in self.__dict__) or (method_name in self.operators)):
       if self.debug:
@@ -197,7 +215,7 @@ class Nco(object):
 
   def checkNco(self):
     if (self.hasNco()):
-      call = [self.NCO,' -V']
+      call = [self.ncra,' --version']
       proc = subprocess.Popen(' '.join(call),
           shell  = True,
           stderr = subprocess.PIPE,
@@ -216,38 +234,18 @@ class Nco(object):
   # Addional operators:
   #------------------------------------------------------------------
   def module_version(self):
-    return '1.2.3'
+    return '0.0.0'
 
   def version(self):
     # return NCO's version
-    proc = subprocess.Popen([self.NCO,'-h'],stderr = subprocess.PIPE,stdout = subprocess.PIPE)
+    proc = subprocess.Popen([self.ncra, '--version'], stderr=subprocess.PIPE,
+                            stdout=subprocess.PIPE)
     ret  = proc.communicate()
     nco_help   = ret[1]
-    match = re.search("NCO version (\d.*), Copyright",nco_help)
+    match = re.search('NCO netCDF Operators version "(\d.*)" last modified', nco_help)
     return match.group(1)
 
-  def boundaryLevels(self,**kwargs):
-    ilevels         = map(float,self.showlevel(input = kwargs['input'])[0].split())
-    bound_levels    = []
-    bound_levels.insert(0,0)
-    for i in range(1,len(ilevels)+1):
-      bound_levels.insert(i,bound_levels[i-1] + 2*(ilevels[i-1]-bound_levels[i-1]))
-
-    return bound_levels
-
-  def thicknessOfLevels(self,**kwargs):
-    bound_levels = self.boundaryLevels(**kwargs)
-    delta_levels    = []
-    for i in range(0,len(bound_levels)):
-      v = bound_levels[i]
-      if 0 == i:
-        continue
-
-      delta_levels.append(v - bound_levels[i-1])
-
-    return delta_levels
-
-  def readCdf(self,iFile):
+  def readCdf(self, iFile):
     """Return a cdf handle created by the available cdf library. python-netcdf4 and scipy suported (default:scipy)"""
     if not self.returnCdf:
       self.loadCdf()
@@ -263,7 +261,7 @@ class Nco(object):
     retval = fileObj
     return retval
 
-  def openCdf(self,iFile):
+  def openCdf(self, iFile):
     """Return a cdf handle created by the available cdf library. python-netcdf4 and scipy suported (default:scipy)"""
     if not self.returnCdf:
       self.loadCdf()
