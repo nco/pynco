@@ -3,7 +3,7 @@ import os, re, subprocess, tempfile, random, string
 def auto_doc(tool, nco_self):
     """Generate the __doc__ string of the decorated function by calling the nco help command"""
     def desc(func):
-        func.__doc__ = nco_self.call([nco_self.NCO, '-h', tool]).get('stdout')
+        func.__doc__ = nco_self.call([tool, '--help']).get('stdout')
         return func
     return desc
 
@@ -24,7 +24,7 @@ class Nco(object):
   def __init__(self, returnCdf=False, returnNoneOnError=False, forceOutput=True, cdfMod='scipy', debug=False, **kwargs):
 
     operators = ['ncap2', 'ncatted', 'ncbo', 'nces', 'ncecat', 'ncflint', 'ncks',
-                 'ncpdq', 'ncra', 'ncrcat', 'ncrename', 'ncwa']
+                 'ncpdq', 'ncra', 'ncrcat', 'ncrename', 'ncwa', 'ncdump']
 
     if os.environ.has_key('NCO'):
       self.NCO = os.environ['NCO']
@@ -38,7 +38,11 @@ class Nco(object):
     self.forceOutput            = forceOutput
     self.cdfMod                 = cdfMod
     self.debug                  = debug
-    self.outputOperatorsPattern = '(diff|info|output|griddes|zaxisdes|show|ncode|ndate|nlevel|nmon|nvar|nyear|ntime|npar|gradsdes|pardes)'
+    self.outputOperatorsPattern = ['ncdump', '-H', '--data', '--hieronymus',
+                                   '-M', '--Mtd', '--Metadata', '-m', '--mtd',
+                                   '--metadata', '-P', '--prn', '--print',
+                                   '-r', '--revision', '--vrs', '--version',
+                                   '--u', '--units']
 
     self.options = kwargs
 
@@ -48,6 +52,7 @@ class Nco(object):
     return res
 
   def call(self, cmd, environment=None):
+    print cmd
     if self.debug:
       print '# DEBUG ====================================================================='
       if None != environment:
@@ -56,6 +61,7 @@ class Nco(object):
       print 'CALL:'+' '.join(cmd)
       print '# DEBUG ====================================================================='
 
+    print ' '.join(cmd)
     proc = subprocess.Popen(' '.join(cmd),
                             shell  = True,
                             stderr = subprocess.PIPE,
@@ -81,53 +87,59 @@ class Nco(object):
 
     @auto_doc(method_name, self)
     def get(self, **kwargs):
-      operator          = [method_name]
-      operatorPrintsOut = False
+      cmd          = [method_name]
 
-      options = kwargs.pop('options', "")
-      input = kwargs.pop("input", "")
+      print kwargs
+      options = kwargs.pop('options', False)
+      input = kwargs.pop("input", '')
       force = kwargs.pop("force", self.forceOutput)
-      output = kwargs.pop("output", None)
+      output = kwargs.pop("output", '')
       environment = kwargs.pop("env", None)
       returnCdf = kwargs.pop("returnCdf", False)
       returnArray = kwargs.pop("returnArray", False)
       returnMaArray = kwargs.pop("returnMaArray", False)
+      operatorPrintsOut = kwargs.pop("operatorPrintsOut", False)
 
       #build the nco command
       #1. the nco operator
-      cmd = operator
       #2a. options keyword arg
-      if 'options':
-          cmd.append(options.split())
+      if options:
+          print options
+          cmd.extend(options.split())
+          print '2a', cmd, options.split()
       if kwargs:
         #2b. all other keyword args become options
         for key, val in kwargs.iteritems():
           if val and type(val)==bool:
             cmd.append("--"+key)
+            print '2b1', cmd
           else:
             cmd.append("--{0}={1}".format(key, val))
+            print '2b2', cmd
       #2c. Global options come in
       for key, val in self.options.iteritems():
         if val and type(val)==bool:
           cmd.append("--"+key)
+          print '2c1', cmd
         else:
           cmd.append("--{0}={1}".format(key, val))
+          print '2c2', cmd
       #3. input files or operators
       if input:
         if isinstance(input, basestring):
             cmd.append(input)
+            print '3a', cmd
         else:
             #we assume it's either a list, a tuple or any iterable.
             cmd.extend(input)
+            print '3b', cmd
       else:
         raise NCOException('Must include input keyword argument to all nco commands')
-      # 4. output file
-      if output:
-        if isinstance(output, basestring):
-            cmd.append(output)
-        else:
-            #we assume it's either a list, a tuple or any iterable.
-            cmd.extend(output)
+
+      # Check if operator prints out
+      for piece in cmd:
+        if piece in self.outputOperatorsPattern:
+          operatorPrintsOut = True
 
       if operatorPrintsOut:
         retvals = self.call(cmd)
@@ -141,10 +153,18 @@ class Nco(object):
             raise NCOException(**retvals)
       else:
         if force and not os.path.isfile(output):
-          if not output:
+          # 4. output file
+          if output:
+            if isinstance(output, basestring):
+                cmd.append(output)
+                print '4a', cmd
+            else:
+                #we assume it's either a list, a tuple or any iterable.
+                cmd.extend(output)
+                print '4b', cmd
+          else:
             output = self.tempfile.path()
-
-          cmd.append(output)
+            cmd.append(output)
 
           retvals = self.call(cmd, environment=environment)
           if self.hasError(method_name, cmd, retvals):
