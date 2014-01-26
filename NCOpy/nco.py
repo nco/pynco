@@ -159,7 +159,8 @@ class Nco(object):
 
             # Check if operator prints out
             for piece in cmd:
-                if piece in self.outputOperatorsPattern:
+                if piece in self.outputOperatorsPattern or \
+                        method_name == 'ncdump':
                     operatorPrintsOut = True
 
             if operatorPrintsOut:

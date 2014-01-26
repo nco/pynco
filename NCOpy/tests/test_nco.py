@@ -167,3 +167,14 @@ def test_initOptions():
               returnNoneOnError=True)
     assert nco.returnCdf
     assert nco.returnNoneOnError
+
+
+@pytest.mark.usefixtures("bar_nc")
+def test_operatorPrintsOut(bar_nc):
+    nco = Nco()
+    dump = nco.ncdump(input=bar_nc, options='-h')
+    print dump
+    assert type(dump) == str
+
+
+
