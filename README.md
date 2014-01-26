@@ -22,9 +22,7 @@ Coming Soon: Download and install nco.py via pypi:
 
 ### Requirements
 
-nco.py requires working NCO binaries, but has not special requirement to
-python. For returning multi-dimensional arrays (numpy addtional netcdf-io 
-modules are needed. These are scipy or netCDF-4.
+nco.py requires working NCO binaries, but has does not have special python version requirements. For returning multi-dimensional arrays (numpy addtional netcdf-io modules are needed. These are [scipy](http://docs.scipy.org/doc/scipy/reference/generated/scipy.io.netcdf.netcdf_file.html) or [netCDF-4](https://code.google.com/p/netcdf4-python/).
 
 ## Usage
 
@@ -36,7 +34,7 @@ For python an instance has to be created first
 
 * File information
 
-    `nco.ncdump(input=ifile)`
+    `ncdump_string = nco.ncdump(input=ifile)`
 
 * Operators with user defined regular output files
 
@@ -48,7 +46,7 @@ For python an instance has to be created first
 
 * Set global NCO options
 
-   `nco.ncks(input=ifile, output=ofile,options="--netcdf4")`
+   `nco.ncks(input=ifile, output=ofile, options="--netcdf4")`
 
 * Return multi-dimension arrrays
 
@@ -58,7 +56,7 @@ For python an instance has to be created first
 
 ## Tempfile helpers
 
-nco.py includes a simple tempfile wrapper, which make live easier, when write your own scripts
+nco.py includes a simple tempfile wrapper, which make live easier, when writing your own scripts
 
 ## Support, Issues, Bugs, ...
 
