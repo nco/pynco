@@ -23,6 +23,7 @@ PIP_ARGS+=" -I --use-wheel --find-links=$base_url/$wheel_box/"
 echo 'Getting netcdf libs'
 # install netcdf packages
 time sudo apt-get $APT_ARGS install nco python-netcdf
+time sudo apt-get $APT_ARGS python-h5py
 
 echo 'Getting numpy libs'
 # we need these for numpy
