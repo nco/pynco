@@ -15,7 +15,6 @@ before_install:
   - echo $VIRTUAL_ENV
   - df -h
   - date
-  - ci/before_install.sh
   - python -V
 
 # command to install dependencies
