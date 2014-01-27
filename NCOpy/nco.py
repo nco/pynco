@@ -63,7 +63,7 @@ class Nco(object):
             if environment:
                 for key, val in environment.items():
                     print("# DEBUG: ENV: {0} = {1}".format(key, val))
-            print('# DEBUG: CALL>> {}'.format(' '.join(cmd)))
+            print('# DEBUG: CALL>> {0}'.format(' '.join(cmd)))
             print('# DEBUG ==================================================')
 
         proc = subprocess.Popen(' '.join(cmd),
@@ -93,7 +93,7 @@ class Nco(object):
         def get(self, input, **kwargs):
             options = kwargs.pop('options', False)
             force = kwargs.pop("force", self.forceOutput)
-            output = kwargs.pop("output", '')
+            output = kwargs.pop("output", None)
             environment = kwargs.pop("env", None)
             debug = kwargs.pop("debug", self.debug)
             returnCdf = kwargs.pop("returnCdf", False)
@@ -123,19 +123,20 @@ class Nco(object):
                     raise TypeError('Unknown type for debug: \
                                     {0}'.format(type(debug)))
 
-            if force and os.path.isfile(output):
-                # make sure overwrite is set
-                if debug:
-                    print("Overwriting file: {0}".format(output))
-                if not [i for i in cmd if i in
-                        self.OverwriteOperatorsPattern]:
-                    cmd.append('--overwrite')
+            if output:
+                if force and os.path.isfile(output):
+                    # make sure overwrite is set
+                    if debug:
+                        print("Overwriting file: {0}".format(output))
+                    if not [i for i in cmd if i in
+                            self.OverwriteOperatorsPattern]:
+                        cmd.append('--overwrite')
 
             #2b. all other keyword args become options
             if kwargs:
                 for key, val in kwargs.iteritems():
                     if val and type(val) == bool:
-                        cmd.append("--{}".format(key))
+                        cmd.append("--{0}".format(key))
                     elif isinstance(val, basestring) or \
                             isinstance(val, int) or \
                             isinstance(val, float):
@@ -181,20 +182,20 @@ class Nco(object):
             else:
                 if output:
                     if isinstance(output, basestring):
-                        cmd.append("--output={}".format(output))
+                        cmd.append("--output={0}".format(output))
                     else:
                         # we assume it's an iterable.
                         if len(output) > 1:
                             raise TypeError('Only one output allowed, \
                                             must be string or 1 length \
-                                            iterable. Recieved output: {} \
+                                            iterable. Recieved output: {0} \
                                             with a type of \
-                                            {}'.format(output,
-                                                       type(output)))
-                        cmd.extend("--output={}".format(output))
+                                            {1}'.format(output,
+                                                        type(output)))
+                        cmd.extend("--output={0}".format(output))
                 else:
                     output = self.tempfile.path()
-                    cmd.append("--output={}".format(output))
+                    cmd.append("--output={0}".format(output))
 
                 if isinstance(input, basestring):
                     cmd.append(input)
@@ -305,8 +306,6 @@ class Nco(object):
         python-netcdf4 and scipy suported (default:scipy)"""
         if not self.returnCdf:
             self.loadCdf()
-
-        assert os.path.isfile(infile)
 
         if self.cdfMod == "scipy":
             #making it compatible to older scipy versions
