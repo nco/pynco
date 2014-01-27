@@ -45,6 +45,7 @@ class Nco(object):
                                        '--metadata', '-P', '--prn', '--print',
                                        '-r', '--revision', '--vrs',
                                        '--version', '--u', '--units']
+        self.OverwriteOperatorsPattern = ['-O', '--ovr', '--overwrite']
 
         if kwargs:
             self.options = kwargs
@@ -59,10 +60,10 @@ class Nco(object):
     def call(self, cmd, environment=None):
         if self.debug:
             print('# DEBUG ==================================================')
-            if None != environment:
+            if environment:
                 for key, val in environment.items():
                     print("# DEBUG: ENV: {0} = {1}".format(key, val))
-            print('# DEBUG: CALL>>'+' '.join(cmd))
+            print('# DEBUG: CALL>> {}'.format(' '.join(cmd)))
             print('# DEBUG ==================================================')
 
         proc = subprocess.Popen(' '.join(cmd),
@@ -89,12 +90,12 @@ class Nco(object):
     def __getattr__(self, method_name):
 
         @auto_doc(method_name, self)
-        def get(self, **kwargs):
+        def get(self, input, **kwargs):
             options = kwargs.pop('options', False)
-            input = kwargs.pop("input", '')
             force = kwargs.pop("force", self.forceOutput)
             output = kwargs.pop("output", '')
             environment = kwargs.pop("env", None)
+            debug = kwargs.pop("debug", self.debug)
             returnCdf = kwargs.pop("returnCdf", False)
             returnArray = kwargs.pop("returnArray", False)
             returnMaArray = kwargs.pop("returnMaArray", False)
@@ -112,15 +113,23 @@ class Nco(object):
                     #we assume it's either a list, a tuple or any iterable.
                     cmd.extend(options)
 
-            if self.debug:
-                if type(self.debug) == bool:
-                    # assume debug level is 10
-                    cmd.append('-D 10')
-                elif type(self.debug) == int:
-                    cmd.append('-D {0}'.format(self.debug))
+            if debug:
+                if type(debug) == bool:
+                    # assume debug level is 3
+                    cmd.append('--dbg_lvl=3')
+                elif type(debug) == int:
+                    cmd.append('--dbg_lvl={0}'.format(debug))
                 else:
                     raise TypeError('Unknown type for debug: \
-                                    {0}'.format(type(self.debug)))
+                                    {0}'.format(type(debug)))
+
+            if force and os.path.isfile(output):
+                # make sure overwrite is set
+                if debug:
+                    print("Overwriting file: {0}".format(output))
+                if not [i for i in cmd if i in
+                        self.OverwriteOperatorsPattern]:
+                    cmd.append('--overwrite')
 
             #2b. all other keyword args become options
             if kwargs:
@@ -146,17 +155,6 @@ class Nco(object):
                         #we assume it's either a list, a tuple or any iterable.
                         cmd.append("--{0}={1}".format(key, ",".join(val)))
 
-            #3. input files or operators
-            if input:
-                if isinstance(input, basestring):
-                    cmd.append(input)
-                else:
-                    #we assume it's either a list, a tuple or any iterable.
-                    cmd.extend(input)
-            else:
-                raise KeyError('Must include input keyword argument to all\
-                                Nco.nco method calls')
-
             # Check if operator prints out
             for piece in cmd:
                 if piece in self.outputOperatorsPattern or \
@@ -164,44 +162,52 @@ class Nco(object):
                     operatorPrintsOut = True
 
             if operatorPrintsOut:
+                if isinstance(input, basestring):
+                    cmd.append(input)
+                else:
+                    #we assume it's either a list, a tuple or any iterable.
+                    cmd.extend(input)
+
                 retvals = self.call(cmd)
+
                 if not self.hasError(method_name, cmd, retvals):
-                    r = map(string.strip, retvals["stdout"].split(os.linesep))
-                    return r[:len(r)-1]
+                    return retvals["stdout"]
+                    # parsing can be done by 3rd party
                 else:
                     if self.returnNoneOnError:
                         return None
                     else:
                         raise NCOException(**retvals)
             else:
-                if force and not os.path.isfile(output):
-                    # 4. output file
-                    if output:
-                        if isinstance(output, basestring):
-                            cmd.append(output)
-                        else:
-                            # we assume it's an iterable.
-                            if len(output) > 1:
-                                raise TypeError('Only one output allowed, \
-                                                must be string or 1 length \
-                                                iterable. Recieved output: {} \
-                                                with a type of \
-                                                {}'.format(output,
-                                                           type(output)))
-                            cmd.extend(output)
+                if output:
+                    if isinstance(output, basestring):
+                        cmd.append("--output={}".format(output))
                     else:
-                        output = self.tempfile.path()
-                        cmd.append(output)
-
-                        retvals = self.call(cmd, environment=environment)
-                        if self.hasError(method_name, cmd, retvals):
-                            if self.returnNoneOnError:
-                                return None
-                            else:
-                                raise NCOException(**retvals)
+                        # we assume it's an iterable.
+                        if len(output) > 1:
+                            raise TypeError('Only one output allowed, \
+                                            must be string or 1 length \
+                                            iterable. Recieved output: {} \
+                                            with a type of \
+                                            {}'.format(output,
+                                                       type(output)))
+                        cmd.extend("--output={}".format(output))
                 else:
-                    if self.debug:
-                        print("Use existing file: {0}".format(output))
+                    output = self.tempfile.path()
+                    cmd.append("--output={}".format(output))
+
+                if isinstance(input, basestring):
+                    cmd.append(input)
+                else:
+                    #we assume it's either a list, a tuple or any iterable.
+                    cmd.extend(input)
+
+                retvals = self.call(cmd, environment=environment)
+                if self.hasError(method_name, cmd, retvals):
+                    if self.returnNoneOnError:
+                        return None
+                    else:
+                        raise NCOException(**retvals)
 
             if returnArray:
                 return self.readArray(output, returnArray)
@@ -300,10 +306,12 @@ class Nco(object):
         if not self.returnCdf:
             self.loadCdf()
 
-        if "scipy" == self.cdfMod:
+        assert os.path.isfile(infile)
+
+        if self.cdfMod == "scipy":
             #making it compatible to older scipy versions
             fileObj = self.cdf.netcdf_file(infile, mode='r')
-        elif "netcdf4" == self.cdfMod:
+        elif self.cdfMod == "netcdf4":
             fileObj = self.cdf.Dataset(infile)
         else:
             raise ImportError("Could not import data \
@@ -316,11 +324,11 @@ class Nco(object):
         if not self.returnCdf:
             self.loadCdf()
 
-        if "scipy" == self.cdfMod:
+        if self.cdfMod == "scipy":
             #making it compatible to older scipy versions
             print("Use scipy")
             fileObj = self.cdf.netcdf_file(infile, mode='r+')
-        elif "netcdf4" == self.cdfMod:
+        elif self.cdfMod == "netcdf4":
             print("Use netcdf4")
             fileObj = self.cdf.Dataset(infile, 'r+')
         else:
@@ -381,7 +389,8 @@ class MyTempfile(object):
 
     def path(self):
         if not self.persistent_tempfile:
-            t = tempfile.NamedTemporaryFile(delete=True, prefix='ncoPy')
+            t = tempfile.NamedTemporaryFile(delete=True, prefix='nco.py_',
+                                            suffix='.nco.tmp')
             self.__class__.__tempfiles.append(t.name)
             t.close()
 

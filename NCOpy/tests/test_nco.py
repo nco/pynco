@@ -69,9 +69,9 @@ def test_use_list_inputs(foo_nc, bar_nc):
 def test_use_list_options(foo_nc):
     nco = Nco(debug=True)
     options = []
-    options.append(['-a', 'units,time,o,c,days since 1999-01-01'])
-    options.append(['-a', 'long_name,time,o,c,time'])
-    options.append(['-a', 'calendar,time,o,c,noleap'])
+    options.extend(['-a', 'units,time,o,c,days since 1999-01-01'])
+    options.extend(['-a', 'long_name,time,o,c,time'])
+    options.extend(['-a', 'calendar,time,o,c,noleap'])
     nco.ncrcat(input=foo_nc, output='out.nc', options=options)
 
 
@@ -108,7 +108,7 @@ def test_errorException():
     assert hasattr(nco, 'nonExistingMethod') == False
     try:
         nco.ncks(input="", output="")
-    except KeyError:
+    except NCOException:
         pass
 
 
@@ -124,7 +124,7 @@ def test_returnArray(foo_nc):
 
 @pytest.mark.usefixtures("bar_mask_nc")
 def test_returnMaArray(bar_mask_nc, random_masked_field):
-    nco = Nco(debug=True)
+    nco = Nco()
     field = nco.ncea(input=bar_mask_nc, returnMaArray='random')
     assert type(field) == np.ma.core.MaskedArray
 
