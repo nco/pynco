@@ -16,6 +16,7 @@ before_install:
   - df -h
   - date
   - python -V
+  - chmod +x ci/install.sh
 
 # command to install dependencies
 install:
