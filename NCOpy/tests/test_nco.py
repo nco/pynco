@@ -135,26 +135,26 @@ def test_returnCdf(foo_nc):
     assert type(testCdf) == scipy.io.netcdf.netcdf_file
     expected_vars = ['time', 'random']
     for var in expected_vars:
-        assert var in testCdf.variables.keys()
+        assert var in list(testCdf.variables.keys())
 
     nco = Nco(cdfMod='netcdf4')
     testCdf = nco.ncea(input=foo_nc, returnCdf=True)
     assert type(testCdf) == netCDF4.Dataset
     for var in expected_vars:
-        assert var in testCdf.variables.keys()
+        assert var in list(testCdf.variables.keys())
 
 
 def test_cdf_mod_scipy():
     nco = Nco()
     nco.setReturnArray()
-    print('nco.cdfMod: {}'.format(nco.cdfMod))
+    print(('nco.cdfMod: {0}'.format(nco.cdfMod)))
     assert nco.cdfMod == "scipy"
 
 
 def test_cdf_mod_netcdf4():
     nco = Nco(cdfMod='netcdf4')
     nco.setReturnArray()
-    print('nco.cdfMod: {}'.format(nco.cdfMod))
+    print(('nco.cdfMod: {0}'.format(nco.cdfMod)))
     assert nco.cdfMod == "netcdf4"
 
 
@@ -173,8 +173,4 @@ def test_initOptions():
 def test_operatorPrintsOut(bar_nc):
     nco = Nco()
     dump = nco.ncdump(input=bar_nc, options='-h')
-    print dump
-    assert type(dump) == str
-
-
-
+    print(dump)

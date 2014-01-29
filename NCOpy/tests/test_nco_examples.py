@@ -101,7 +101,6 @@ def test_command_line_options(foo_nc):
     test = nco.ncks(input=foo_nc, options='--dbg_lvl=3')
     test = nco.ncks(input=foo_nc, options='--dbg_lvl 3')
     test = nco.ncks(input=foo_nc, dbg_lvl=3)
-    print test
 
 
 def test_specifying_input_files(testfiles8589):

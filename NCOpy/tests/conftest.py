@@ -146,7 +146,7 @@ def monthly_filelist(random_field, monthlydatetimelist, tempsrcdir):
 def testfiles8589(random_field, tempsrcdir):
     """Create a bunch of sample monthly netcdf files with real times"""
     filelist = []
-    for year in xrange(1985, 1990):
+    for year in range(1985, 1990):
         date = datetime.datetime(year, 1, 1)
         filename = date.strftime("%y.nc")
         filename = os.path.join(tempsrcdir, filename)
@@ -172,7 +172,7 @@ def testfiles8589(random_field, tempsrcdir):
 def testfile85(random_field, tempsrcdir):
     """Create a bunch of sample monthly netcdf files with real times"""
     dates = [datetime.datetime(1985, 1, 1) + datetime.timedelta(days=d) for
-             d in xrange(0, 365)]
+             d in range(0, 365)]
     tempdir = tempsrcdir()
     filename = os.path.join(tempdir, "85.nc")
     f = netCDF4.Dataset(filename, 'w')

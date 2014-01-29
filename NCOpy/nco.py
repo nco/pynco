@@ -1,10 +1,9 @@
-from __future__ import print_function
+
 import os
 import re
 import subprocess
 import tempfile
 import random
-import string
 
 
 class NCOException(Exception):
@@ -61,7 +60,7 @@ class Nco(object):
         if self.debug:
             print('# DEBUG ==================================================')
             if environment:
-                for key, val in environment.items():
+                for key, val in list(environment.items()):
                     print("# DEBUG: ENV: {0} = {1}".format(key, val))
             print('# DEBUG: CALL>> {0}'.format(' '.join(cmd)))
             print('# DEBUG ==================================================')
@@ -107,7 +106,7 @@ class Nco(object):
 
             #2a. options keyword arg
             if options:
-                if isinstance(options, basestring):
+                if isinstance(options, str):
                     cmd.extend(options.split())
                 else:
                     #we assume it's either a list, a tuple or any iterable.
@@ -134,10 +133,10 @@ class Nco(object):
 
             #2b. all other keyword args become options
             if kwargs:
-                for key, val in kwargs.iteritems():
+                for key, val in list(kwargs.items()):
                     if val and type(val) == bool:
                         cmd.append("--{0}".format(key))
-                    elif isinstance(val, basestring) or \
+                    elif isinstance(val, str) or \
                             isinstance(val, int) or \
                             isinstance(val, float):
                         cmd.append("--{0}={1}".format(key, val))
@@ -147,10 +146,10 @@ class Nco(object):
 
             #2c. Global options come in
             if self.options:
-                for key, val in self.options.iteritems():
+                for key, val in list(self.options.items()):
                     if val and type(val) == bool:
                         cmd.append("--"+key)
-                    elif isinstance(val, basestring):
+                    elif isinstance(val, str):
                         cmd.append("--{0}={1}".format(key, val))
                     else:
                         #we assume it's either a list, a tuple or any iterable.
@@ -163,7 +162,7 @@ class Nco(object):
                     operatorPrintsOut = True
 
             if operatorPrintsOut:
-                if isinstance(input, basestring):
+                if isinstance(input, str):
                     cmd.append(input)
                 else:
                     #we assume it's either a list, a tuple or any iterable.
@@ -181,7 +180,7 @@ class Nco(object):
                         raise NCOException(**retvals)
             else:
                 if output:
-                    if isinstance(output, basestring):
+                    if isinstance(output, str):
                         cmd.append("--output={0}".format(output))
                     else:
                         # we assume it's an iterable.
@@ -197,7 +196,7 @@ class Nco(object):
                     output = self.tempfile.path()
                     cmd.append("--output={0}".format(output))
 
-                if isinstance(input, basestring):
+                if isinstance(input, str):
                     cmd.append(input)
                 else:
                     #we assume it's either a list, a tuple or any iterable.
