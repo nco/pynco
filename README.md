@@ -32,6 +32,20 @@ For python an instance has to be created first
 
    `nco = Nco()`
 
+Now any NCO command (i.e. ncks, ncra, ...) can be called as a method of `nco`. 
+
+* Required argument 
+   - input - Input netcdf file name, str
+
+* Optional arguments
+   - output - Output netcdf name, str.  If not provided and operator returns a file (not an array or stdout text), the method will return a temporary file.  
+   - debug - bool or int, if <0 or True, debug statements will be turned on for NCO and NCOpy (default=False)
+   - returnCdf - return a netCDF file handle, bool (default=False)
+   - returnArray - return a numpy array of variable name, str (default='')
+   - returnMaArray - return a numpy masked array of variable name, str (default='')
+   - options - a string of NCO input options, for example options='-7 -L 1' (default='')
+   - **kwargs - any kwarg will be passed as a key, value pair to the nco command "--{key}={value}".  This allows the user to pass any number of long name commands list in the nco help pages.  
+
 * File information
 
     `ncdump_string = nco.ncdump(input=ifile)`
@@ -50,9 +64,9 @@ For python an instance has to be created first
 
 * Return multi-dimension arrrays
 
-   `temperatures = nco.ncra(input=ifile,:returnArray=True).variables['T'][:]`
-   `temperatures = nco.ncra(input=ifile,:returnCdf=True).variables['T'][:]`
-   `temperatures = nco.ncra(input=ifile,:returnArray='T')`
+   `temperatures = nco.ncra(input=ifile, returnArray=True).variables['T'][:]`
+   `temperatures = nco.ncra(input=ifile, returnCdf=True).variables['T'][:]`
+   `temperatures = nco.ncra(input=ifile, returnArray='T')`
 
 ## Tempfile helpers
 
