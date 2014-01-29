@@ -38,7 +38,7 @@ Now any NCO command (i.e. ncks, ncra, ...) can be called as a method of `nco`.
    - input - Input netcdf file name, str
 
 * Optional arguments
-   - output - Output netcdf name, str.  If not provided and operator returns a file (not an array or stdout text), the method will return a temporary file.  
+   - output - String or list of strings representing input netCDF filenames.  If not provided and operator returns a file (not an array or stdout text), the method will return a temporary file.  
    - debug - bool or int, if <0 or True, debug statements will be turned on for NCO and NCOpy (default=False)
    - returnCdf - return a netCDF file handle, bool (default=False)
    - returnArray - return a numpy array of variable name, str (default='')
@@ -52,11 +52,11 @@ Now any NCO command (i.e. ncks, ncra, ...) can be called as a method of `nco`.
 
 * Operators with user defined regular output files
 
-    `nco.timmin(input=ifile, output=ofile)`
+    `nco.ncra(input=ifile, output=ofile)`
 
 * Use temporary output files
 
-    `tminFile = nco.ncrcat(input=ifile)`
+    `temp_ofile = nco.ncrcat(input=ifile)`
 
 * Set global NCO options
 
