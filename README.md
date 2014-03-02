@@ -18,7 +18,7 @@ purposes too.
 
 Coming Soon: Download and install nco.py via pypi:
 
-  `pip install cdo`
+  `pip install nco`
 
 ### Requirements
 
