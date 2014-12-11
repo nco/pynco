@@ -16,8 +16,8 @@ def test_ncks_hdf2nc(hdf_file):
     ncks --hdf4 fl.hdf fl.nc # Convert HDF4->netCDF4 (NCO 4.3.7-4.3.9)
     """
     nco = Nco(debug=True)
-    nco.ncks(input=hdf_file, ouput='foo.nc')
-    nco.ncks(input=hdf_file, ouput='foo.nc', hdf4=True)
+    nco.ncks(input=hdf_file, output='foo.nc')
+    nco.ncks(input=hdf_file, output='foo.nc', hdf4=True)
 
 
 def test_ncks_hdf2nc3():
@@ -33,10 +33,10 @@ def test_ncks_hdf2nc3():
     ncks --hdf4 -7 fl.hdf fl.nc # HDF4->netCDF4 classic (netCDF 4.3.0-)
     """
     nco = Nco(debug=True)
-    nco.ncks(input='foo.hdf', ouput='foo.nc', options='-3')
-    nco.ncks(input='foo.hdf', ouput='foo.nc', options='-7 -L 1')
-    nco.ncks(input='foo.hdf', ouput='foo.nc', options='-3', hdf4=True)
-    nco.ncks(input='foo.hdf', ouput='foo.nc', options='-7', hdf4=True)
+    nco.ncks(input='foo.hdf', output='foo.nc', options='-3')
+    nco.ncks(input='foo.hdf', output='foo.nc', options='-7 -L 1')
+    nco.ncks(input='foo.hdf', output='foo.nc', options='-3', hdf4=True)
+    nco.ncks(input='foo.hdf', output='foo.nc', options='-7', hdf4=True)
 
 
 def test_temp_output_files(foo_nc):
