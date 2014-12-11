@@ -107,10 +107,8 @@ def test_ncea_mult_files(foo_nc, bar_nc):
 def test_errorException():
     nco = Nco()
     assert hasattr(nco, 'nonExistingMethod') == False
-    try:
+    with pytest.raises(NCOException):
         nco.ncks(input="", output="")
-    except NCOException:
-        pass
 
 
 @pytest.mark.usefixtures("foo_nc")
