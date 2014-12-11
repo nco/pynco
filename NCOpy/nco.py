@@ -56,31 +56,68 @@ class Nco(object):
         res.extend(self.operators)
         return res
 
-    def call(self, cmd, environment=None):
-        if self.debug:
-            print('# DEBUG ==================================================')
-            if environment:
-                for key, val in list(environment.items()):
-                    print("# DEBUG: ENV: {0} = {1}".format(key, val))
-            print('# DEBUG: CALL>> {0}'.format(' '.join(cmd)))
-            print('# DEBUG ==================================================')
+    def call(self, cmd, inputs=None, environment=None):
 
-        proc = subprocess.Popen(' '.join(cmd),
-                                shell=True,
-                                stderr=subprocess.PIPE,
-                                stdout=subprocess.PIPE,
-                                env=environment)
+        try:
+            inline_cmd = cmd
+            if inputs is not None:
+                if isinstance(inputs, str):
+                    inline_cmd.append(inputs)
+                else:
+                    #we assume it's either a list, a tuple or any iterable.
+                    inline_cmd.extend(inputs)
+
+            if self.debug:
+                print('# DEBUG ==================================================')
+                if environment:
+                    for key, val in list(environment.items()):
+                        print("# DEBUG: ENV: {0} = {1}".format(key, val))
+                print('# DEBUG: CALL>> {0}'.format(' '.join(inline_cmd)))
+                print('# DEBUG ==================================================')
+
+            proc = subprocess.Popen(' '.join(inline_cmd),
+                                    shell=True,
+                                    stderr=subprocess.PIPE,
+                                    stdout=subprocess.PIPE,
+                                    env=environment)
+        except OSError:
+            # Argument list may have been too long, so we should pipe the inputs
+            # http://nco.sourceforge.net/nco.html#Large-Numbers-of-Files
+            if not isinstance(inputs, str):
+                # Assume it's an iterable, as we do above when not piping
+                inputs = ' '.join(inputs)
+
+            if self.debug:
+                print('# DEBUG ==================================================')
+                if environment:
+                    for key, val in list(environment.items()):
+                        print("# DEBUG: ENV: {0} = {1}".format(key, val))
+                print('# DEBUG: CALL>> echo {0} | {1}'.format(inputs, ' '.join(cmd)))
+                print('# DEBUG ==================================================')
+
+            iproc = subprocess.Popen('echo {0}'.format(inputs),
+                                     shell=True,
+                                     stderr=subprocess.PIPE,
+                                     stdout=subprocess.PIPE,
+                                     env=environment)
+            proc = subprocess.Popen(' '.join(cmd),
+                                    shell=True,
+                                    stdin=iproc.stdout,
+                                    stderr=subprocess.PIPE,
+                                    stdout=subprocess.PIPE,
+                                    env=environment)
         retvals = proc.communicate()
         return {"stdout": retvals[0],
                 "stderr": retvals[1],
                 "returncode": proc.returncode}
 
-    def hasError(self, method_name, cmd, retvals):
+    def hasError(self, method_name, inputs, cmd, retvals):
         if (self.debug):
             print("# DEBUG: RETURNCODE: {0}".format(retvals["returncode"]))
         if retvals["returncode"] != 0:
             print("Error in calling operator {0} with:".format(method_name))
             print(">>> {0} <<<".format(' '.join(cmd)))
+            print("Inputs: {0!s}".format(inputs))
             print(retvals["stderr"])
             return True
         else:
@@ -162,15 +199,9 @@ class Nco(object):
                     operatorPrintsOut = True
 
             if operatorPrintsOut:
-                if isinstance(input, str):
-                    cmd.append(input)
-                else:
-                    #we assume it's either a list, a tuple or any iterable.
-                    cmd.extend(input)
+                retvals = self.call(cmd, inputs=input)
 
-                retvals = self.call(cmd)
-
-                if not self.hasError(method_name, cmd, retvals):
+                if not self.hasError(method_name, input, cmd, retvals):
                     return retvals["stdout"]
                     # parsing can be done by 3rd party
                 else:
@@ -196,14 +227,8 @@ class Nco(object):
                     output = self.tempfile.path()
                     cmd.append("--output={0}".format(output))
 
-                if isinstance(input, str):
-                    cmd.append(input)
-                else:
-                    #we assume it's either a list, a tuple or any iterable.
-                    cmd.extend(input)
-
-                retvals = self.call(cmd, environment=environment)
-                if self.hasError(method_name, cmd, retvals):
+                retvals = self.call(cmd, inputs=input, environment=environment)
+                if self.hasError(method_name, input, cmd, retvals):
                     if self.returnNoneOnError:
                         return None
                     else:
