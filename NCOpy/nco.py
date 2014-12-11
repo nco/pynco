@@ -58,51 +58,31 @@ class Nco(object):
 
     def call(self, cmd, inputs=None, environment=None):
 
+        inline_cmd = cmd
+        if inputs is not None:
+            if isinstance(inputs, str):
+                inline_cmd.append(inputs)
+            else:
+                #we assume it's either a list, a tuple or any iterable.
+                inline_cmd.extend(inputs)
+
+        if self.debug:
+            print('# DEBUG ==================================================')
+            if environment:
+                for key, val in list(environment.items()):
+                    print("# DEBUG: ENV: {0} = {1}".format(key, val))
+            print('# DEBUG: CALL>> {0}'.format(' '.join(inline_cmd)))
+            print('# DEBUG ==================================================')
+
         try:
-            inline_cmd = cmd
-            if inputs is not None:
-                if isinstance(inputs, str):
-                    inline_cmd.append(inputs)
-                else:
-                    #we assume it's either a list, a tuple or any iterable.
-                    inline_cmd.extend(inputs)
-
-            if self.debug:
-                print('# DEBUG ==================================================')
-                if environment:
-                    for key, val in list(environment.items()):
-                        print("# DEBUG: ENV: {0} = {1}".format(key, val))
-                print('# DEBUG: CALL>> {0}'.format(' '.join(inline_cmd)))
-                print('# DEBUG ==================================================')
-
             proc = subprocess.Popen(' '.join(inline_cmd),
                                     shell=True,
                                     stderr=subprocess.PIPE,
                                     stdout=subprocess.PIPE,
                                     env=environment)
         except OSError:
-            # Argument list may have been too long, so we should pipe the inputs
-            # http://nco.sourceforge.net/nco.html#Large-Numbers-of-Files
-            if not isinstance(inputs, str):
-                # Assume it's an iterable, as we do above when not piping
-                inputs = ' '.join(inputs)
-
-            if self.debug:
-                print('# DEBUG ==================================================')
-                if environment:
-                    for key, val in list(environment.items()):
-                        print("# DEBUG: ENV: {0} = {1}".format(key, val))
-                print('# DEBUG: CALL>> echo {0} | {1}'.format(inputs, ' '.join(cmd)))
-                print('# DEBUG ==================================================')
-
-            iproc = subprocess.Popen('echo {0}'.format(inputs),
-                                     shell=True,
-                                     stderr=subprocess.PIPE,
-                                     stdout=subprocess.PIPE,
-                                     env=environment)
-            proc = subprocess.Popen(' '.join(cmd),
-                                    shell=True,
-                                    stdin=iproc.stdout,
+            # Argument list may have been too long, so don't use a shell
+            proc = subprocess.Popen(inline_cmd,
                                     stderr=subprocess.PIPE,
                                     stdout=subprocess.PIPE,
                                     env=environment)
