@@ -66,6 +66,7 @@ def test_use_list_inputs(foo_nc, bar_nc):
     nco.ncrcat(input=infiles, output='out.nc')
 
 
+@pytest.mark.usefixtures("foo_nc")
 def test_use_list_options(foo_nc):
     nco = Nco(debug=True)
     options = []
@@ -82,7 +83,7 @@ def test_ncra_mult_files(foo_nc, bar_nc):
     nco.ncra(input=infiles, output='out.nc')
 
 
-@pytest.mark.usefixtures("foo_nc", "bar_nc")
+@pytest.mark.usefixtures("foo_nc")
 def test_ncra_single_file(foo_nc):
     nco = Nco(debug=True)
     infile = foo_nc
@@ -122,13 +123,14 @@ def test_returnArray(foo_nc):
     np.testing.assert_equal(random1, random2)
 
 
-@pytest.mark.usefixtures("bar_mask_nc")
+@pytest.mark.usefixtures("bar_mask_nc", "random_masked_field")
 def test_returnMaArray(bar_mask_nc, random_masked_field):
     nco = Nco()
     field = nco.ncea(input=bar_mask_nc, returnMaArray='random')
     assert type(field) == np.ma.core.MaskedArray
 
 
+@pytest.mark.usefixtures("foo_nc")
 def test_returnCdf(foo_nc):
     nco = Nco(cdfMod='scipy')
     testCdf = nco.ncea(input=foo_nc, returnCdf=True)
