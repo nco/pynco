@@ -1,8 +1,6 @@
 import pytest
-from stat import *
-from nco import *
-# import numpy as np
-# import pylab as pl
+import os
+from nco import Nco
 
 
 @pytest.mark.usefixtures("cleandir")
@@ -20,7 +18,7 @@ def test_ncks_hdf2nc(hdf_file):
     nco.ncks(input=hdf_file, output='foo.nc', hdf4=True)
 
 
-def test_ncks_hdf2nc3():
+def test_ncks_hdf2nc3(hdf_file):
     """
     1.6 netCDF2/3/4 and HDF4/5 Support
     Obtaining a netCDF3 file from an HDF4 is now easy, even though the HDF4
@@ -33,10 +31,10 @@ def test_ncks_hdf2nc3():
     ncks --hdf4 -7 fl.hdf fl.nc # HDF4->netCDF4 classic (netCDF 4.3.0-)
     """
     nco = Nco(debug=True)
-    nco.ncks(input='foo.hdf', output='foo.nc', options='-3')
-    nco.ncks(input='foo.hdf', output='foo.nc', options='-7 -L 1')
-    nco.ncks(input='foo.hdf', output='foo.nc', options='-3', hdf4=True)
-    nco.ncks(input='foo.hdf', output='foo.nc', options='-7', hdf4=True)
+    nco.ncks(input=hdf_file, output='foo.nc', options='-3')
+    nco.ncks(input=hdf_file, output='foo.nc', options='-7 -L 1')
+    nco.ncks(input=hdf_file, output='foo.nc', options='-3', hdf4=True)
+    nco.ncks(input=hdf_file, output='foo.nc', options='-7', hdf4=True)
 
 
 def test_temp_output_files(foo_nc):

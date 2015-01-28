@@ -1,22 +1,22 @@
 nco-bindings
 ============
 
-Language bindings for NCO.  A fork from Ralf Mueller's [cdo-bindings](https://github.com/Try2Code/cdo-bindings).
+Language bindings for [NCO](http://nco.sourceforge.net/).  A fork from Ralf Mueller's [cdo-bindings](https://github.com/Try2Code/cdo-bindings).
 
-## nco.py - Use Python to access the power of NCO
+## nco.py - Use Python to access the power of [NCO](http://nco.sourceforge.net/)
 
-This package contains the module NCO, which implements a python style access to
-the NetCDF Operators NCO. NCO is a command line tool for processing
+This package contains the module `NCO`, which implements a python style access to
+the [NetCDF Operators (NCO)](http://nco.sourceforge.net/). NCO is a command line tool for processing
 netCDF data. Its main focus if climate data, but it can by used for other
 purposes too.
 
 ## Installation
 
-### Python Installation
+### Python Installation:
 
-   `./setup.py install`
+   `python setup.py install`
 
-Coming Soon: Download and install nco.py via pypi:
+### Pypi Installation:
 
   `pip install nco`
 

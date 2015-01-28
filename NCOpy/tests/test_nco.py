@@ -1,12 +1,7 @@
 
 import os
-# import tempfile
-# import sys
-# import glob
-from stat import *
-from nco import *
+from nco import NCOException, Nco, which
 import numpy as np
-# import pylab as pl
 import netCDF4
 import scipy
 import pytest
@@ -19,7 +14,7 @@ ops = ['ncap2', 'ncatted', 'ncbo', 'nces', 'ncecat', 'ncflint', 'ncks',
 def rm(files):
     for f in files:
         if os.path.exists(f):
-            os.system("rm "+f)
+            os.system("rm " + f)
 
 
 def test_nco_present():
@@ -56,7 +51,6 @@ def test_listAllOperators():
     nco = Nco()
     operators = nco.operators
     operators.sort()
-    #print "\n".join(operators)
 
 
 @pytest.mark.usefixtures("foo_nc", "bar_nc")
@@ -106,14 +100,14 @@ def test_ncea_mult_files(foo_nc, bar_nc):
 
 def test_errorException():
     nco = Nco()
-    assert hasattr(nco, 'nonExistingMethod') == False
+    assert hasattr(nco, 'nonExistingMethod') is False
     with pytest.raises(NCOException):
         nco.ncks(input="", output="")
 
 
 @pytest.mark.usefixtures("foo_nc")
 def test_returnArray(foo_nc):
-    nco = Nco()
+    nco = Nco(cdfMod='netcdf4')
     random1 = nco.ncea(input=foo_nc, returnCdf=True).variables['random'][:]
     assert type(random1) == np.ndarray
     random2 = nco.ncea(input=foo_nc, returnArray='random')
@@ -145,7 +139,7 @@ def test_returnCdf(foo_nc):
 
 
 def test_cdf_mod_scipy():
-    nco = Nco()
+    nco = Nco(cdfMod='scipy')
     nco.setReturnArray()
     print(('nco.cdfMod: {0}'.format(nco.cdfMod)))
     assert nco.cdfMod == "scipy"
@@ -162,7 +156,7 @@ def test_initOptions():
     nco = Nco(debug=True)
     assert nco.debug
     nco = Nco(forceOutput=False)
-    assert nco.forceOutput == False
+    assert nco.forceOutput is False
     nco = Nco(returnCdf=True,
               returnNoneOnError=True)
     assert nco.returnCdf
