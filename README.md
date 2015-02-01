@@ -5,20 +5,20 @@ Language bindings for [NCO](http://nco.sourceforge.net/).  A fork from Ralf Muel
 
 ## nco.py - Use Python to access the power of [NCO](http://nco.sourceforge.net/)
 
-This package contains the module `NCO`, which implements a python style access to
+This package contains the module python `nco`, which implements a python style access to
 the [NetCDF Operators (NCO)](http://nco.sourceforge.net/). NCO is a command line tool for processing
-netCDF data. Its main focus if climate data, but it can by used for other
+netCDF data. Its main focus is climate data, but it can by used for other
 purposes too.
 
 ## Installation
 
 ### Python Installation:
 
-   `python setup.py install`
+    python setup.py install
 
 ### Pypi Installation:
 
-  `pip install nco`
+    pip install nco
 
 ### Requirements
 
@@ -30,64 +30,70 @@ nco.py requires working NCO binaries, but has does not have special python versi
 
 For python an instance has to be created first
 
-   `nco = Nco()`
+    from nco import Nco
+    nco = Nco()
 
-Now any NCO command (i.e. ncks, ncra, ...) can be called as a method of `nco`. 
+Now any NCO command (i.e. ncks, ncra, ...) can be called as a method of `nco`.
 
-* Required argument 
+* Required argument
    - input - Input netcdf file name, str
 
 * Optional arguments
-   - output - String or list of strings representing input netCDF filenames.  If not provided and operator returns a file (not an array or stdout text), the method will return a temporary file.  
-   - debug - bool or int, if <0 or True, debug statements will be turned on for NCO and NCOpy (default=False)
-   - returnCdf - return a netCDF file handle, bool (default=False)
-   - returnArray - return a numpy array of variable name, str (default='')
-   - returnMaArray - return a numpy masked array of variable name, str (default='')
-   - options - a string of NCO input options, for example options='-7 -L 1' (default='')
-   - **kwargs - any kwarg will be passed as a key, value pair to the nco command "--{key}={value}".  This allows the user to pass any number of long name commands list in the nco help pages.  
+    - `output` - String or list of strings representing input netCDF filenames.  If not provided and operator returns a file (not an array or stdout text), the method will return a temporary file.
+    - `debug` - bool or int, if <0 or True, debug statements will be turned on for NCO and NCOpy (default=False)
+    - `returnCdf` - return a netCDF file handle, bool (default=False)
+    - `returnArray` - return a numpy array of variable name, str (default='')
+    - `returnMaArray` - return a numpy masked array of variable name, str (default='')
+    - `options` - a string of NCO input options, for example options='-7 -L 1' (default='')
+    - `**kwargs` - any kwarg will be passed as a key, value pair to the nco command `--{key}={value}`.  This allows the user to pass any number of long name commands list in the nco help pages.
 
-* File information
+### Examples
 
-    `ncdump_string = nco.ncdump(input=ifile)`
+* File information:
 
-* Operators with user defined regular output files
+        ncdump_string = nco.ncdump(input=ifile)
 
-    `nco.ncra(input=ifile, output=ofile)`
+* Operators with user defined regular output files:
 
-* Use temporary output files
+        nco.ncra(input=ifile, output=ofile)
 
-    `temp_ofile = nco.ncrcat(input=ifile)`
+* Use temporary output files:
 
-* Set global NCO options
+        temp_ofile = nco.ncrcat(input=ifile)
 
-   `nco.ncks(input=ifile, output=ofile, options="--netcdf4")`
+* Set global NCO options:
 
-* Return multi-dimension arrrays
+        nco.ncks(input=ifile, output=ofile, options="--netcdf4")
 
-   `temperatures = nco.ncra(input=ifile, returnArray=True).variables['T'][:]`
-   `temperatures = nco.ncra(input=ifile, returnCdf=True).variables['T'][:]`
-   `temperatures = nco.ncra(input=ifile, returnArray='T')`
+* Return multi-dimension arrrays:
+
+        temperatures = nco.ncra(input=ifile, returnArray=True).variables['T'][:]
+        temperatures = nco.ncra(input=ifile, returnCdf=True).variables['T'][:]
+        temperatures = nco.ncra(input=ifile, returnArray='T')
 
 ## Tempfile helpers
 
-nco.py includes a simple tempfile wrapper, which make live easier, when writing your own scripts
+nco.py includes a simple tempfile wrapper, which makes life easier.  In the
+absence of a specified output file, `Nco()` will create a temporary file to allow the results of the task to be returned to the user.  For example:
+
+    temperatures = nco.ncra(input=ifile, returnArray='T')
+is equivalent to:
+
+    temperatures = nco.ncra(input=ifile, output=tempfile.mktemp(), returnArray='T')
 
 ## Support, Issues, Bugs, ...
 
-Please use the github page for this code: https://github.com/jhamman/nco-bindings
-
-## Changelog
-* next:
-   - add ncdump --> python dictionary function
+Please use the github page for this code: https://github.com/jhamman/nco-bindings.
 
 ## License
 
-nco.py makes use of the GPLv2 License, see COPYING
+nco.py makes use of the GPLv2 License, see LICENSE
 
 ---
 
 ## Other stuff
 
 * Author: Joe Hamman <jhamman@hydro.washington.edu>
-* Requires: NCO version 4.x.x or newer
-* License:  Copyright 2013 by Joe Hamman.  Released under GPLv2 license.  See the COPYING file included in the distribution.
+* Requires: NCO version 4.x.x or newer, Python 2.6 or later
+* Optional: scipy or Python netCDF4
+* License:  Copyright 2015 by Joe Hamman.  Released under GPLv2 license.  See the LICENSE file included in the distribution.
