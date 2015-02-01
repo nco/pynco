@@ -4,25 +4,34 @@ python:
   - "2.6"
   - "2.7"
   - "3.3"
-
-# allow importing from site-packages,
-# so apt-get python-x works for system pythons
-# That's 2.7/3.2 on Ubuntu 12.04
-virtualenv:
-  system_site_packages: true
-
-before_install:
-  - echo "before_install"
-  - echo $VIRTUAL_ENV
-  - df -h
-  - date
-  - python -V
-  - chmod +x ci/install.sh
-
-# command to install dependencies
 install:
-  - echo "install"
-  - ci/install.sh
+  # allow importing from site-packages,
+  # so apt-get python-x works for system pythons
+  # That's 2.7/3.2 on Ubuntu 12.04
+  - sudo apt-get update
+  # You may want to periodically update this, although the conda update
+  # conda line below will keep everything up-to-date.  We do this
+  # conditionally because it saves us some downloading if the version is
+  # the same.
+  - if [[ "$TRAVIS_PYTHON_VERSION" == "2.6" ||
+          "$TRAVIS_PYTHON_VERSION" == "2.7"]]; then
+      wget http://repo.continuum.io/miniconda/Miniconda-3.4.2-Linux-x86_64.sh -O miniconda.sh;
+    else
+      wget http://repo.continuum.io/miniconda/Miniconda3-3.4.2-Linux-x86_64.sh -O miniconda.sh;
+    fi
+  - bash miniconda.sh -b -p $HOME/miniconda
+  - export PATH="$HOME/miniconda/bin:$PATH"
+  - hash -r
+  - conda config --set always_yes yes --set changeps1 no
+  - conda update -q conda
+  # Useful for debugging any issues with conda
+  - conda info -a
+
+  # Make Conda test environment
+  - conda create -q -n test-environment python=$TRAVIS_PYTHON_VERSION --file=ci/requirements-${TRAVIS_PYTHON_VERSION}.txt
+  - source activate test-environment
+  - sudo apt-get nco
+  - python NCOpy/setup.py install
 
 # command to run tests
 script:
