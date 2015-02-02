@@ -7,7 +7,7 @@ python:
 
 before_install:
   - sudo apt-get update
-  - sudo apt-get install netcdf libnetcdf-dev nco
+  - sudo apt-get install libnetcdf-dev nco
 
 install:
   # Get miniconda
