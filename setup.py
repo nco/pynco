@@ -22,7 +22,7 @@ License:
 
 from setuptools import setup
 
-version='0.0.2'
+version = '0.0.2'
 
 setup(name='nco',
       version=version,
@@ -32,7 +32,6 @@ setup(name='nco',
       description="""python bindings to NCO""",
       packages=['nco'],
       py_modules=["nco.nco"],
-      platform=['any'],
       url="https://raw2.github.com/jhamman/nco-bindings/",
       download_url="https://raw2.github.com/jhamman/nco-bindings/tarball/{0}".format(version),
       keywords=['netcdf', 'climate'],
