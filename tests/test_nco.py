@@ -1,12 +1,28 @@
+#!/usr/bin/env python
+"""
+Unit tests for nco.py.
 
+License:
+    Python Bindings for NCO (NetCDF Operators)
+    Copyright (C) 2015  Joe Hamman
+
+    This program is free software; you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation; either version 2 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License along
+    with this program; if not, write to the Free Software Foundation, Inc.,
+    51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+"""
 import os
-# import tempfile
-# import sys
-# import glob
-from stat import *
-from nco import *
+from nco import NCOException, Nco, which
 import numpy as np
-# import pylab as pl
 import netCDF4
 import scipy
 import pytest
@@ -19,7 +35,7 @@ ops = ['ncap2', 'ncatted', 'ncbo', 'nces', 'ncecat', 'ncflint', 'ncks',
 def rm(files):
     for f in files:
         if os.path.exists(f):
-            os.system("rm "+f)
+            os.system("rm " + f)
 
 
 def test_nco_present():
@@ -56,7 +72,6 @@ def test_listAllOperators():
     nco = Nco()
     operators = nco.operators
     operators.sort()
-    #print "\n".join(operators)
 
 
 @pytest.mark.usefixtures("foo_nc", "bar_nc")
@@ -66,6 +81,7 @@ def test_use_list_inputs(foo_nc, bar_nc):
     nco.ncrcat(input=infiles, output='out.nc')
 
 
+@pytest.mark.usefixtures("foo_nc")
 def test_use_list_options(foo_nc):
     nco = Nco(debug=True)
     options = []
@@ -82,7 +98,7 @@ def test_ncra_mult_files(foo_nc, bar_nc):
     nco.ncra(input=infiles, output='out.nc')
 
 
-@pytest.mark.usefixtures("foo_nc", "bar_nc")
+@pytest.mark.usefixtures("foo_nc")
 def test_ncra_single_file(foo_nc):
     nco = Nco(debug=True)
     infile = foo_nc
@@ -105,16 +121,14 @@ def test_ncea_mult_files(foo_nc, bar_nc):
 
 def test_errorException():
     nco = Nco()
-    assert hasattr(nco, 'nonExistingMethod') == False
-    try:
+    assert hasattr(nco, 'nonExistingMethod') is False
+    with pytest.raises(NCOException):
         nco.ncks(input="", output="")
-    except NCOException:
-        pass
 
 
 @pytest.mark.usefixtures("foo_nc")
 def test_returnArray(foo_nc):
-    nco = Nco()
+    nco = Nco(cdfMod='netcdf4')
     random1 = nco.ncea(input=foo_nc, returnCdf=True).variables['random'][:]
     assert type(random1) == np.ndarray
     random2 = nco.ncea(input=foo_nc, returnArray='random')
@@ -122,13 +136,14 @@ def test_returnArray(foo_nc):
     np.testing.assert_equal(random1, random2)
 
 
-@pytest.mark.usefixtures("bar_mask_nc")
+@pytest.mark.usefixtures("bar_mask_nc", "random_masked_field")
 def test_returnMaArray(bar_mask_nc, random_masked_field):
     nco = Nco()
     field = nco.ncea(input=bar_mask_nc, returnMaArray='random')
     assert type(field) == np.ma.core.MaskedArray
 
 
+@pytest.mark.usefixtures("foo_nc")
 def test_returnCdf(foo_nc):
     nco = Nco(cdfMod='scipy')
     testCdf = nco.ncea(input=foo_nc, returnCdf=True)
@@ -145,7 +160,7 @@ def test_returnCdf(foo_nc):
 
 
 def test_cdf_mod_scipy():
-    nco = Nco()
+    nco = Nco(cdfMod='scipy')
     nco.setReturnArray()
     print(('nco.cdfMod: {0}'.format(nco.cdfMod)))
     assert nco.cdfMod == "scipy"
@@ -162,7 +177,7 @@ def test_initOptions():
     nco = Nco(debug=True)
     assert nco.debug
     nco = Nco(forceOutput=False)
-    assert nco.forceOutput == False
+    assert nco.forceOutput is False
     nco = Nco(returnCdf=True,
               returnNoneOnError=True)
     assert nco.returnCdf

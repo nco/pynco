@@ -1,4 +1,24 @@
+"""
+nco module.  Use Nco class as interface.
 
+License:
+    Python Bindings for NCO (NetCDF Operators)
+    Copyright (C) 2015  Joe Hamman
+
+    This program is free software; you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation; either version 2 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License along
+    with this program; if not, write to the Free Software Foundation, Inc.,
+    51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+"""
 import os
 import re
 import subprocess
@@ -20,7 +40,7 @@ class NCOException(Exception):
 
 class Nco(object):
     def __init__(self, returnCdf=False, returnNoneOnError=False,
-                 forceOutput=True, cdfMod='scipy', debug=0, **kwargs):
+                 forceOutput=True, cdfMod='netcdf4', debug=0, **kwargs):
 
         operators = ['ncap2', 'ncatted', 'ncbo', 'nces', 'ncecat', 'ncflint',
                      'ncks', 'ncpdq', 'ncra', 'ncrcat', 'ncrename', 'ncwa',
@@ -45,6 +65,10 @@ class Nco(object):
                                        '-r', '--revision', '--vrs',
                                        '--version', '--u', '--units']
         self.OverwriteOperatorsPattern = ['-O', '--ovr', '--overwrite']
+        self.AppendOperatorsPattern = ['-A', '--apn', '--append']
+        self.DontForcePattern = (self.outputOperatorsPattern +
+                                 self.OverwriteOperatorsPattern +
+                                 self.AppendOperatorsPattern)
 
         if kwargs:
             self.options = kwargs
@@ -56,31 +80,48 @@ class Nco(object):
         res.extend(self.operators)
         return res
 
-    def call(self, cmd, environment=None):
+    def call(self, cmd, inputs=None, environment=None):
+
+        inline_cmd = cmd
+        if inputs is not None:
+            if isinstance(inputs, str):
+                inline_cmd.append(inputs)
+            else:
+                #we assume it's either a list, a tuple or any iterable.
+                inline_cmd.extend(inputs)
+
         if self.debug:
             print('# DEBUG ==================================================')
             if environment:
                 for key, val in list(environment.items()):
                     print("# DEBUG: ENV: {0} = {1}".format(key, val))
-            print('# DEBUG: CALL>> {0}'.format(' '.join(cmd)))
+            print('# DEBUG: CALL>> {0}'.format(' '.join(inline_cmd)))
             print('# DEBUG ==================================================')
 
-        proc = subprocess.Popen(' '.join(cmd),
-                                shell=True,
-                                stderr=subprocess.PIPE,
-                                stdout=subprocess.PIPE,
-                                env=environment)
+        try:
+            proc = subprocess.Popen(' '.join(inline_cmd),
+                                    shell=True,
+                                    stderr=subprocess.PIPE,
+                                    stdout=subprocess.PIPE,
+                                    env=environment)
+        except OSError:
+            # Argument list may have been too long, so don't use a shell
+            proc = subprocess.Popen(inline_cmd,
+                                    stderr=subprocess.PIPE,
+                                    stdout=subprocess.PIPE,
+                                    env=environment)
         retvals = proc.communicate()
         return {"stdout": retvals[0],
                 "stderr": retvals[1],
                 "returncode": proc.returncode}
 
-    def hasError(self, method_name, cmd, retvals):
+    def hasError(self, method_name, inputs, cmd, retvals):
         if (self.debug):
             print("# DEBUG: RETURNCODE: {0}".format(retvals["returncode"]))
         if retvals["returncode"] != 0:
             print("Error in calling operator {0} with:".format(method_name))
             print(">>> {0} <<<".format(' '.join(cmd)))
+            print("Inputs: {0!s}".format(inputs))
             print(retvals["stderr"])
             return True
         else:
@@ -122,20 +163,22 @@ class Nco(object):
                     raise TypeError('Unknown type for debug: \
                                     {0}'.format(type(debug)))
 
-            if output:
-                if force and os.path.isfile(output):
-                    # make sure overwrite is set
-                    if debug:
-                        print("Overwriting file: {0}".format(output))
-                    if not [i for i in cmd if i in
-                            self.OverwriteOperatorsPattern]:
-                        cmd.append('--overwrite')
+            if output and force and os.path.isfile(output):
+                # make sure overwrite is set
+                if debug:
+                    print("Overwriting file: {0}".format(output))
+                if any([i for i in cmd if i in self.DontForcePattern]):
+                    force = False
+            else:
+                force = False
 
             #2b. all other keyword args become options
             if kwargs:
                 for key, val in list(kwargs.items()):
                     if val and type(val) == bool:
                         cmd.append("--{0}".format(key))
+                        if cmd[-1] in (self.DontForcePattern):
+                            force = False
                     elif isinstance(val, str) or \
                             isinstance(val, int) or \
                             isinstance(val, float):
@@ -155,6 +198,10 @@ class Nco(object):
                         #we assume it's either a list, a tuple or any iterable.
                         cmd.append("--{0}={1}".format(key, ",".join(val)))
 
+            # 3.  Add in overwrite if necessary
+            if force:
+                cmd.append('--overwrite')
+
             # Check if operator prints out
             for piece in cmd:
                 if piece in self.outputOperatorsPattern or \
@@ -162,15 +209,9 @@ class Nco(object):
                     operatorPrintsOut = True
 
             if operatorPrintsOut:
-                if isinstance(input, str):
-                    cmd.append(input)
-                else:
-                    #we assume it's either a list, a tuple or any iterable.
-                    cmd.extend(input)
+                retvals = self.call(cmd, inputs=input)
 
-                retvals = self.call(cmd)
-
-                if not self.hasError(method_name, cmd, retvals):
+                if not self.hasError(method_name, input, cmd, retvals):
                     return retvals["stdout"]
                     # parsing can be done by 3rd party
                 else:
@@ -196,14 +237,8 @@ class Nco(object):
                     output = self.tempfile.path()
                     cmd.append("--output={0}".format(output))
 
-                if isinstance(input, str):
-                    cmd.append(input)
-                else:
-                    #we assume it's either a list, a tuple or any iterable.
-                    cmd.extend(input)
-
-                retvals = self.call(cmd, environment=environment)
-                if self.hasError(method_name, cmd, retvals):
+                retvals = self.call(cmd, inputs=input, environment=environment)
+                if self.hasError(method_name, input, cmd, retvals):
                     if self.returnNoneOnError:
                         return None
                     else:
@@ -234,21 +269,23 @@ class Nco(object):
             raise AttributeError("Unknown method {0}!".format(method_name))
 
     def loadCdf(self):
-        if self.cdfMod == "scipy":
-            try:
-                import scipy.io.netcdf as cdf
-                self.cdf = cdf
-            except:
-                print("Could not load scipy.io.netcdf - try to load nercdf4")
-                self.cdfMod = "netcdf4"
-
         if self.cdfMod == "netcdf4":
             try:
                 import netCDF4 as cdf
                 self.cdf = cdf
             except:
-                raise ImportError("scipy or python-netcdf4 module is required \
-                                  to return numpy arrays.")
+                raise ImportError("Could not load python-netcdf4 - try to "
+                                  "setting 'cdfMod='scipy'")
+        elif self.cdfMod == "scipy":
+            try:
+                import scipy.io.netcdf as cdf
+                self.cdf = cdf
+            except:
+                raise ImportError("Could not load scipy.io.netcdf - try to "
+                                  "setting 'cdfMod='netcdf4'")
+        else:
+            raise ValueError("Unknown value provided for cdfMod.  Valid "
+                             "values are 'scipy' and 'netcdf4'")
 
     def setReturnArray(self, value=True):
         self.returnCdf = value
@@ -336,14 +373,14 @@ class Nco(object):
         return fileObj
 
     def readArray(self, infile, varname):
-        """Direcly return a numpy array for a given variable name"""
+        """Directly return a numpy array for a given variable name"""
         filehandle = self.readCdf(infile)
-        if varname in filehandle.variables:
+        try:
             # return the data array
             return filehandle.variables[varname][:]
-        else:
+        except KeyError:
             print("Cannot find variable: {0}".format(varname))
-            return False
+            raise KeyError
 
     def readMaArray(self, infile, varname):
         """Create a masked array based on cdf's FillValue"""

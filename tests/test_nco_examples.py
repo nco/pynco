@@ -1,8 +1,27 @@
+"""
+Test that nco.py works for documented examples from NCO.
+
+License:
+    Python Bindings for NCO (NetCDF Operators)
+    Copyright (C) 2015  Joe Hamman
+
+    This program is free software; you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation; either version 2 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License along
+    with this program; if not, write to the Free Software Foundation, Inc.,
+    51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+"""
 import pytest
-from stat import *
-from nco import *
-# import numpy as np
-# import pylab as pl
+import os
+from nco import Nco
 
 
 @pytest.mark.usefixtures("cleandir")
@@ -16,11 +35,11 @@ def test_ncks_hdf2nc(hdf_file):
     ncks --hdf4 fl.hdf fl.nc # Convert HDF4->netCDF4 (NCO 4.3.7-4.3.9)
     """
     nco = Nco(debug=True)
-    nco.ncks(input=hdf_file, ouput='foo.nc')
-    nco.ncks(input=hdf_file, ouput='foo.nc', hdf4=True)
+    nco.ncks(input=hdf_file, output='foo.nc')
+    nco.ncks(input=hdf_file, output='foo.nc', hdf4=True)
 
 
-def test_ncks_hdf2nc3():
+def test_ncks_hdf2nc3(hdf_file):
     """
     1.6 netCDF2/3/4 and HDF4/5 Support
     Obtaining a netCDF3 file from an HDF4 is now easy, even though the HDF4
@@ -33,10 +52,10 @@ def test_ncks_hdf2nc3():
     ncks --hdf4 -7 fl.hdf fl.nc # HDF4->netCDF4 classic (netCDF 4.3.0-)
     """
     nco = Nco(debug=True)
-    nco.ncks(input='foo.hdf', ouput='foo.nc', options='-3')
-    nco.ncks(input='foo.hdf', ouput='foo.nc', options='-7 -L 1')
-    nco.ncks(input='foo.hdf', ouput='foo.nc', options='-3', hdf4=True)
-    nco.ncks(input='foo.hdf', ouput='foo.nc', options='-7', hdf4=True)
+    nco.ncks(input=hdf_file, output='foo.nc', options='-3')
+    nco.ncks(input=hdf_file, output='foo.nc', options='-7 -L 1')
+    nco.ncks(input=hdf_file, output='foo.nc', options='-3', hdf4=True)
+    nco.ncks(input=hdf_file, output='foo.nc', options='-7', hdf4=True)
 
 
 def test_temp_output_files(foo_nc):

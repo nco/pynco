@@ -199,15 +199,19 @@ def testfileglobal(tempsrcdir):
     f = netCDF4.Dataset(filename, 'w')
     random_field = np.random.rand(1, 180, 360)  # 1degree resolution
     shape = random_field.shape
-    dim0 = f.createDimension('lon', shape[1])
-    dim1 = f.createDimension('lat', shape[2])
+    dim0 = f.createDimension('lat', shape[1])
+    dim1 = f.createDimension('lon', shape[2])
     time = f.createDimension('time', len(dates))
     var = f.createVariable('random', 'f8', ('time', 'lat', 'lon',))
+    lon = f.createVariable('lon', 'f8', ('lon',))
+    lat = f.createVariable('lat', 'f8', ('lat',))
     time = f.createVariable('time', 'f8', ('time'))
     time.units = stdtimeunits
     time.calendar = noleapcalendar
     var[:, :, :] = random_field
     time[:] = netCDF4.date2num(dates, stdtimeunits, calendar=noleapcalendar)
+    lat[:] = np.linspace(-90., 90., shape[1])
+    lon[:] = np.linspace(-180., 180, shape[2])
     f.close()
     return filename
 
@@ -241,4 +245,3 @@ def foo4c(tempsrcdir):
     f = netCDF4.Dataset(filename, 'w', format='NETCDF4_CLASSIC')
     f.close()
     return filename
-
