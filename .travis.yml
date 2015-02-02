@@ -4,16 +4,13 @@ python:
   - "2.6"
   - "2.7"
   - "3.3"
-install:
-  # allow importing from site-packages,
-  # so apt-get python-x works for system pythons
-  # That's 2.7/3.2 on Ubuntu 12.04
+
+before_install:
   - sudo apt-get update
-  - sudo apt-get install nco
-  # You may want to periodically update this, although the conda update
-  # conda line below will keep everything up-to-date.  We do this
-  # conditionally because it saves us some downloading if the version is
-  # the same.
+  - sudo apt-get install netcdf libnetcdf-dev nco
+
+install:
+  # Get miniconda
   - if [[ "$TRAVIS_PYTHON_VERSION" == "3.3" ]]; then
       wget http://repo.continuum.io/miniconda/Miniconda3-3.4.2-Linux-x86_64.sh -O miniconda.sh;
     else
@@ -34,5 +31,5 @@ install:
 
 # command to run tests
 script:
-  - python -c "import nco"
+  - python -c "from nco import Nco"
   - py.test
