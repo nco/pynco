@@ -30,7 +30,7 @@ install:
   # Make Conda test environment
   - conda create -q -n test-environment python=$TRAVIS_PYTHON_VERSION --file=ci/requirements-${TRAVIS_PYTHON_VERSION}.txt
   - source activate test-environment
-  - python NCOpy/setup.py install
+  - python setup.py install
 
 # command to run tests
 script:
