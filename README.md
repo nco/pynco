@@ -26,6 +26,10 @@ nco.py requires working NCO binaries, but has does not have special python versi
 
 ## Usage
 
+#### Importing the Nco class
+
+   `from nco import Nco`
+
 ### Run operators
 
 For python an instance has to be created first
