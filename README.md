@@ -103,7 +103,7 @@ nco.py makes use of the GPLv2 License, see LICENSE
 
 ## Other stuff
 
-* Author: Joe Hamman <jhamman@hydro.washington.edu>
+* Author: Joe Hamman <jhamman1@uw.edu>
 * Requires: NCO version 4.x.x or newer, Python 2.6 or later
 * Optional: scipy or Python netCDF4
 * License:  Copyright 2015 by Joe Hamman.  Released under GPLv2 license.  See the LICENSE file included in the distribution.
