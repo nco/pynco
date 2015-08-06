@@ -22,7 +22,13 @@ purposes too.
 
 ### Requirements
 
-nco.py requires working NCO binaries, but has does not have special python version requirements. For returning multi-dimensional arrays (numpy addtional netcdf-io modules are needed. These are [scipy](http://docs.scipy.org/doc/scipy/reference/generated/scipy.io.netcdf.netcdf_file.html) or [netCDF-4](https://code.google.com/p/netcdf4-python/).
+- [NetCDF Operators (NCO)](http://nco.sourceforge.net/) - Version 4.2 or later
+- Python 2.6 or later
+
+**Recommended dependencies for returning `numpy` arrays from `nco` operations**
+- [scipy](http://docs.scipy.org/doc/scipy/reference/generated/scipy.io.netcdf.netcdf_file.html)
+- [netCDF-4](https://code.google.com/p/netcdf4-python/)
+- [numpy](http://www.numpy.org/)
 
 ## Usage
 
