@@ -93,7 +93,7 @@ is equivalent to:
 
 ## Support, Issues, Bugs, ...
 
-Please use the github page for this code: https://github.com/jhamman/nco-bindings.
+Please use the github page for this code: https://github.com/nco/pynco.
 
 ## License
 
