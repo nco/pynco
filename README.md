@@ -1,9 +1,9 @@
-nco-bindings
+pynco
 ============
 
 Language bindings for [NCO](http://nco.sourceforge.net/).  A fork from Ralf Mueller's [cdo-bindings](https://github.com/Try2Code/cdo-bindings).
 
-## nco.py - Use Python to access the power of [NCO](http://nco.sourceforge.net/)
+## `pynco` - Use Python to access the power of [NCO](http://nco.sourceforge.net/)
 
 This package contains the module python `nco`, which implements a python style access to
 the [NetCDF Operators (NCO)](http://nco.sourceforge.net/). NCO is a command line tool for processing
@@ -83,7 +83,7 @@ Now any NCO command (i.e. ncks, ncra, ...) can be called as a method of `nco`.
 
 ## Tempfile helpers
 
-nco.py includes a simple tempfile wrapper, which makes life easier.  In the
+`pynco` includes a simple tempfile wrapper, which makes life easier.  In the
 absence of a specified output file, `Nco()` will create a temporary file to allow the results of the task to be returned to the user.  For example:
 
     temperatures = nco.ncra(input=ifile, returnArray='T')
@@ -97,13 +97,13 @@ Please use the github page for this code: https://github.com/jhamman/nco-binding
 
 ## License
 
-nco.py makes use of the GPLv2 License, see LICENSE
+`pynco` makes use of the GPLv2 License, see LICENSE.txt.
 
 ---
 
 ## Other stuff
 
 * Author: Joe Hamman <jhamman1@uw.edu>
-* Requires: NCO version 4.x.x or newer, Python 2.6 or later
+* Requires: NCO version 4.2.x or newer, Python 2.6 or later
 * Optional: scipy or Python netCDF4
 * License:  Copyright 2015 by Joe Hamman.  Released under GPLv2 license.  See the LICENSE file included in the distribution.
