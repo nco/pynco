@@ -1,0 +1,11 @@
+site_name: pynco
+
+site_description: Python Bindings for NCO
+site_author: Joe Hamman
+repo_url: https://github.com/nco/pynco
+site_url: http://pynco.readthedocs.org/
+theme: readthedocs
+copyright: "Copyright: Joe Hamman, 2015"
+docs_dir: docs
+site_dir: site
+use_directory_urls: true
