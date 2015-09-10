@@ -25,6 +25,12 @@ import subprocess
 import tempfile
 import random
 
+try:
+    from xray import open_dataset
+    xray_loaded = True
+except Exception as xray_import_error:
+    xray_loaded = False
+
 
 class NCOException(Exception):
     def __init__(self, stdout, stderr, returncode):
@@ -40,7 +46,8 @@ class NCOException(Exception):
 
 class Nco(object):
     def __init__(self, returnCdf=False, returnNoneOnError=False,
-                 forceOutput=True, cdfMod='netcdf4', debug=0, **kwargs):
+                 return_xray=False, forceOutput=True, cdfMod='netcdf4',
+                 debug=0, **kwargs):
 
         operators = ['ncap2', 'ncatted', 'ncbo', 'nces', 'ncecat', 'ncflint',
                      'ncks', 'ncpdq', 'ncra', 'ncrcat', 'ncrename', 'ncwa',
@@ -53,6 +60,7 @@ class Nco(object):
 
         self.operators = operators
         self.returnCdf = returnCdf
+        self.return_xray = return_xray
         self.returnNoneOnError = returnNoneOnError
         self.tempfile = MyTempfile()
         self.forceOutput = forceOutput
@@ -140,6 +148,7 @@ class Nco(object):
             returnArray = kwargs.pop("returnArray", False)
             returnMaArray = kwargs.pop("returnMaArray", False)
             operatorPrintsOut = kwargs.pop("operatorPrintsOut", False)
+            return_xray = kwargs.pop('return_xray', False)
 
             #build the nco command
             #1. the nco operator
@@ -252,6 +261,12 @@ class Nco(object):
                 if not self.returnCdf:
                     self.loadCdf()
                     return self.readCdf(output)
+            elif self.return_xray or return_xray:
+                if xray_loaded:
+                    return open_dataset(output)
+                else:
+                    raise ImportError('Unable to retun xray.Dataset, xray not '
+                                      'imported: %s' % xray_import_error)
             else:
                 return output
 

@@ -26,6 +26,7 @@ import numpy as np
 import netCDF4
 import scipy
 import pytest
+import xray
 
 
 ops = ['ncap2', 'ncatted', 'ncbo', 'nces', 'ncecat', 'ncflint', 'ncks',
@@ -157,6 +158,16 @@ def test_returnCdf(foo_nc):
     assert type(testCdf) == netCDF4.Dataset
     for var in expected_vars:
         assert var in list(testCdf.variables.keys())
+
+
+@pytest.mark.usefixtures("foo_nc")
+def test_return_xray(foo_nc):
+    nco = Nco()
+    test_ds = nco.ncea(input=foo_nc, return_xray=True)
+    assert type(test_ds) == xray.Dataset
+    expected_vars = ['time', 'random']
+    for var in expected_vars:
+        assert var in list(test_ds)
 
 
 def test_cdf_mod_scipy():
