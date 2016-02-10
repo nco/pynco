@@ -1,7 +1,0 @@
-dateutil==2.1
-h5py==2.4.0
-netCDF4==1.1.1
-numpy==1.9.1
-pytest==2.6.4
-scipy==0.15.1
-setuptools==12.0.5
