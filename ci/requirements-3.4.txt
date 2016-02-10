@@ -1,6 +1,6 @@
 name: test_env
 dependencies:
- - python=2.7
+ - python=3.4
  - dateutil
  - h5py
  - netCDF4

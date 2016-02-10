@@ -1,16 +1,13 @@
 language: python
 
 python:
-  - "2.6"
   - "2.7"
-  - "3.3"
   - "3.4"
+  - "3.5"
 
 before_install:
   - sudo apt-get update
   - sudo apt-get install libnetcdf-dev nco
-
-install:
   # Get miniconda
   - if [[ "$TRAVIS_PYTHON_VERSION" == "3.3" ]]; then
       wget http://repo.continuum.io/miniconda/Miniconda3-3.4.2-Linux-x86_64.sh -O miniconda.sh;
@@ -26,8 +23,8 @@ install:
   - conda info -a
 
   # Make Conda test environment
-  - conda create -q -n test-environment python=$TRAVIS_PYTHON_VERSION --file=ci/requirements-${TRAVIS_PYTHON_VERSION}.txt
-  - source activate test-environment
+  - conda env create --file ci/requirements-${TRAVIS_PYTHON_VERSION}.yml
+  - source activate test_env
   - python setup.py install
 
 # command to run tests

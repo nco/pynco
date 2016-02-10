@@ -2,7 +2,7 @@ pynco
 ============
 Use Python to access the power of [NCO](http://nco.sourceforge.net/)
 
-Language bindings for [NCO](http://nco.sourceforge.net/).  A fork from Ralf Mueller's [cdo-bindings](https://github.com/Try2Code/cdo-bindings).
+Python bindings for [NCO](http://nco.sourceforge.net/).  A fork from Ralf Mueller's [cdo-bindings](https://github.com/Try2Code/cdo-bindings).
 
 This package contains the module python `nco`, which implements a python style access to
 the [NetCDF Operators (NCO)](http://nco.sourceforge.net/). NCO is a command line tool for processing
@@ -19,10 +19,15 @@ purposes too.
 
     pip install nco
 
+    ### Conda Installation:
+
+         conda install -c https://conda.anaconda.org/ioos pynco
+
 ### Requirements
 
+- ***Platform***: Unix or Mac OS (Windows has not bee tested)
 - [NetCDF Operators (NCO)](http://nco.sourceforge.net/) - Version 4.2 or later
-- Python 2.6 or later
+- Python 2.7, 3.4, or later
 
 **Recommended dependencies for returning `numpy` arrays from `nco` operations**
 - [scipy](http://docs.scipy.org/doc/scipy/reference/generated/scipy.io.netcdf.netcdf_file.html)
@@ -78,7 +83,7 @@ temp_ofile = nco.ncrcat(input=ifile)
 nco.ncks(input=ifile, output=ofile, options="--netcdf4")
 ```
 
-* Return multi-dimension arrrays:
+* Return multi-dimension arrays:
 
 ```Python
 temperatures = nco.ncra(input=ifile, returnArray=True).variables['T'][:]
