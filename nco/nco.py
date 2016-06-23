@@ -156,9 +156,9 @@ class Nco(object):
             if debug:
                 if type(debug) == bool:
                     # assume debug level is 3
-                    cmd.append('--dbg_lvl=3')
+                    cmd.append('--nco_dbg_lvl=3')
                 elif type(debug) == int:
-                    cmd.append('--dbg_lvl={0}'.format(debug))
+                    cmd.append('--nco_dbg_lvl={0}'.format(debug))
                 else:
                     raise TypeError('Unknown type for debug: \
                                     {0}'.format(type(debug)))
