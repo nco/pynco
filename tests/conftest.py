@@ -67,11 +67,11 @@ def foo_nc(random_field):
     shape = random_field.shape
     dim0 = f.createDimension('dim0', shape[0])
     dim1 = f.createDimension('dim1', shape[1])
-    time = f.createDimension('time', 1)
+    time = f.createDimension('time', None)
     var = f.createVariable('random', 'f8', ('time', 'dim0', 'dim1',))
     time = f.createVariable('time', 'f8', ('time'))
     time.units = stdtimeunits
-    var[:, :, :] = random_field
+    var[0, :, :] = random_field
     time[:] = 1.0
     f.close()
     return filename
@@ -86,11 +86,11 @@ def bar_nc(random_field):
     shape = random_field.shape
     dim0 = f.createDimension('dim0', shape[0])
     dim1 = f.createDimension('dim1', shape[1])
-    time = f.createDimension('time', 1)
+    time = f.createDimension('time', None)
     var = f.createVariable('random', 'f8', ('time', 'dim0', 'dim1',))
     time = f.createVariable('time', 'f8', ('time'))
     time.units = stdtimeunits
-    var[:, :, :] = random_field*2.0
+    var[0, :, :] = random_field*2.0
     time[:] = 2.0
     f.close()
     return filename
