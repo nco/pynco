@@ -37,7 +37,6 @@ class NCOException(Exception):
     def __str__(self):
         return self.msg
 
-
 class Nco(object):
     def __init__(self, returnCdf=False, returnNoneOnError=False,
                  forceOutput=True, cdfMod='netcdf4', debug=0, **kwargs):
@@ -69,6 +68,10 @@ class Nco(object):
         self.DontForcePattern = (self.outputOperatorsPattern +
                                  self.OverwriteOperatorsPattern +
                                  self.AppendOperatorsPattern)
+        # I/O from call 
+        self.returncode=0
+        self.stdout="" 
+        self.stderr=""        
 
         if kwargs:
             self.options = kwargs
@@ -210,7 +213,9 @@ class Nco(object):
 
             if operatorPrintsOut:
                 retvals = self.call(cmd, inputs=input)
-
+                self.returncode=retvals["returncode"]
+                self.stdout=retvals["stdout"]
+                self.stderr=retvals["stderr"]
                 if not self.hasError(method_name, input, cmd, retvals):
                     return retvals["stdout"]
                     # parsing can be done by 3rd party
@@ -233,11 +238,14 @@ class Nco(object):
                                             {1}'.format(output,
                                                         type(output)))
                         cmd.extend("--output={0}".format(output))
-                else:
-                    output = self.tempfile.path()
-                    cmd.append("--output={0}".format(output))
+                # else:
+                #     output = self.tempfile.path()
+                #     cmd.append("--output={0}".format(output))
 
                 retvals = self.call(cmd, inputs=input, environment=environment)
+                self.returncode=retvals["returncode"]
+                self.stdout=retvals["stdout"]
+                self.stderr=retvals["stderr"]
                 if self.hasError(method_name, input, cmd, retvals):
                     if self.returnNoneOnError:
                         return None
