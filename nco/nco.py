@@ -160,9 +160,8 @@ class Nco(object):
                 for o in options:
                     if isinstance(o,str):
                         cmd.extend(o.split())
-                    # check for atted object - only valid form ncatted
-                    # elif type(o) is custom.atted:       
-                    elif hasattr(custom.atted, 'prnOption'):
+                    # only a custom object will have this method - eg the class atted
+                    elif hasattr(o, 'prnOption'):
                         if method_name == "ncatted":
                            cmd.extend(o.prnOption().split())
                     else:
