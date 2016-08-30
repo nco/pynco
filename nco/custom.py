@@ -50,23 +50,38 @@ npTypes = dict({
 })
 
 npTypesNP = dict({
-    'float32': np.float32 ,
-    'float':   np.float32 ,
-    'float64': np.float64,
-    'double': np.float64,
-    'int32'  : np.int32,
-    'int16'  : np.int16,
-    'str'    : str,
-    'char'   : str,
-    'string' : str,  
-    'byte':    np.byte,
-    'ubyte'  : np.ubyte,
-    'int8'   : np.byte,
-    'uint8'  : np.ubyte,
-    'uint16':  np.uint16,
-    'uint32':  np.uint32,
-    'int64':   np.int64,
-    'uint64':  np.uint64
+    'float32' : np.float32, 
+    'float'   : np.float32 ,
+    'f'       : np.float32 ,
+    'float64' : np.float64,
+    'double'  : np.float64,
+    'd'       : np.float64,
+    'int32'   : np.int32,
+    'i'       : np.int32,
+    'l'       : np.int32,
+    'int16'   : np.int16,
+    's'       : np.int16,
+    'str'     : str,
+    'char'    : str,
+    'c'       : str,
+    'string'  : str,  
+    'sng'     : str,  
+    'byte'    : np.byte,
+    'b'       : np.byte,
+    'ubyte'   : np.ubyte,
+    'ub'      : np.ubyte,
+    'int8'    : np.byte,
+    'uint8'   : np.ubyte,
+    'uint16'  : np.uint16,
+    'us'      : np.uint16,
+    'uint32'  : np.uint32,
+    'u'       : np.uint32,
+    'ui'      : np.uint32,
+    'ul'      : np.uint32,
+    'int64'   : np.int64,
+    'll'      : np.int64,
+    'uint64'  : np.uint64,
+    'ull'     : np.uint64
 })
 
 
@@ -83,12 +98,14 @@ class atted(object):
         varName = kwargs.pop('varName', varName)
         Value = kwargs.pop('Value', Value)
         sType = kwargs.pop('sType',sType )
-
+            
+        if mode in validModes:
+           mode=validModes[mode]  
+        elif mode in validModes.keys():
+           pass
+        else:
+           raise Exception('{0}: mode "{1}" not found'.format("atted()","atted():",mode))
         
-        if mode == None or not mode in validModes:
-            raise Exception('{0}: mode "{1}" not found'.format("atted()","atted():",mode))
-
-         
         if attName==None or len(attName)==0: 
             raise Exception ('{0}: attName zero length\n'.format("atted()"))
 
@@ -101,7 +118,7 @@ class atted(object):
         self.npValue=None    
 
         # dont bother about type & value
-        if self.mode=="delete":
+        if self.mode=="d":
             return None
         
         # deal with string quirk 
@@ -141,36 +158,45 @@ class atted(object):
            # check the input type 
            else:  
                try: 
-                      
                    x=npTypes[str(np.dtype(inputType)) ] 
                    npType=inputType
                except:
                    raise Exception('{0}: The type of Value "{1}" is NOT valid\nValid values {2}\n'.format("atted()", inputType, npTypes.keys()))                          
 
-        if bIterable:                          
-            npValue=list() 
-            for v in Value:    
-                npValue.append(np.dtype(npType).type(v))
+        if bIterable:              
+            if npType is str:                          
+                # convert everything to string
+                sList=[ np.dtype(str).type(v) for v in Value]
+               
+                # get max string length
+                lenMax=len ( max(sList,key=len) )
+                # create array of 'fixed' length strings
+                npValue=np.array( sList , 'S{0}'.format(lenMax) )          
+       
+                # for v in Value:    
+                #     npValue.append(np.dtype(npType).type(v))
+            else: 
+                npValue=np.fromiter(Value, npType)  # create array from iterable all in one go !!
         else:
             npValue=np.dtype(npType).type(Value) 
+
         
-        if npValue:
+        if npValue is not None:
           self.npType=npType
           self.npValue=npValue 
                         
     def __str__(self):
           return ('mode="{0}" attName="{1}" varName="{2} Value="{3}" type="{4}"\n'.format(self.mode, self.attName, self.varName, self.npValue, self.npType))
- 
+
     def prnOption(self): 
 
               
-        modeChar=validModes[self.mode]
-
+        # modeChar=validModes[self.mode]
         # deal with delete - nb doesnt need any data 
-        if self.mode=='delete':  
-            return ('-a "{0}","{1}",{2},,'.format(self.attName,self.varName, modeChar))   
+        if self.mode=='d':  
+            return ('-a "{0}","{1}",{2},,'.format(self.attName,self.varName, self.mode))   
 
-        bList= type(self.npValue) is list        
+        bList= type(self.npValue) is list or type(self.npValue) is np.ndarray       
   
         # deal with string quirks here 
         if self.npType is str:
@@ -192,55 +218,51 @@ class atted(object):
         else: 
             strArray=[str(v)  for v in self.npValue]
 
+
         strValue=",".join(strArray)
 
        
-        return ('-a "{0}","{1}",{2},{3},{4}'.format(self.attName,self.varName, modeChar, typeChar, strValue))  
+        return ('-a "{0}","{1}",{2},{3},{4}'.format(self.attName,self.varName, self.mode, typeChar, strValue))  
            
 
 ################# main ################################
 
 def test():
      
-    a1=atted(mode="overwrite", attName="units", varName="temperature", Value="Kelvin")
-    a2=atted(mode="overwrite", attName="min", varName="temperature", Value=-127 ,sType='byte' )
-    a3=atted(mode="overwrite", attName="max", varName="temperature", Value=127, sType='int16')
-    a4=atted(mode="modify", attName="min-max", varName="pressure", Value=[100,10000], sType='int32')
-    a5=atted(mode="create", attName="array", varName="time_bands", Value=range(1,10,2), sType='float')
-    a6=atted(mode="append", attName="mean", varName="time_bands", Value=3.14159826253) #default to double
-    a6=atted(mode="append", attName="mean_float", varName="time_bands", Value=3.14159826253, sType='float' ) #d convert type to float
-    a7=atted(mode="append", attName="mean_sng", varName="time_bands", Value=3.14159826253,sType='char')
-    a8=atted(mode="nappend", attName="units", varName="height", Value="height in mm", sType='string')
-    
+    AttedList=[ 
+      atted(mode="overwrite", attName="units", varName="temperature", Value="Kelvin"),
+      atted(mode="overwrite", attName="min", varName="temperature", Value=-127 ,sType='byte' ),
+      atted(mode="overwrite", attName="max", varName="temperature", Value=127, sType='int16'),
+      atted(mode="modify", attName="min-max", varName="pressure", Value=[100,10000], sType='int32'),
+      atted(mode="create", attName="array", varName="time_bands", Value=range(1,10,2), sType='d'),
+      atted(mode="append", attName="mean", varName="time_bands", Value=3.14159826253), #default to double
+      atted(mode="append", attName="mean_float", varName="time_bands", Value=3.14159826253, sType='float' ), #d convert type to float
+      atted(mode="append", attName="mean_sng", varName="time_bands", Value=3.14159826253,sType='char'),
+      atted(mode="nappend", attName="units", varName="height", Value="height in mm", sType='string'),
+      atted(mode="create", attName="long_name", varName="height", Value="height in feet"),
+      atted(mode="nappend", attName="units", varName="blob", Value=[1000000.,2.], sType='d'),
+    ]  
 
     # regular function args
-    a9=atted("append", "long_name", "temperature", ("mean", "sea","level","temperature"))
-    a10=atted("delete", "short_name", "temp")
-    a11=atted("delete","long_name","relative_humidity")
+    AttedList+=[
+       atted("append", "long_name", "temperature", ("mean", "sea","level","temperature")),
+       atted("delete", "short_name", "temp"),
+       atted("delete","long_name","relative_humidity")
+    ]   
 
     ar=("mean", "sea","level","temperature",3.1459,2.0)
-    a11=atted("append", "long_name", "temperature", ar)
-
-    a12=atted(mode="delete", attName=".*")
-
     val=np.dtype(np.complex).type(123456.0)
-    a13=atted(mode="append", attName="array", varName="time", Value=val,sType='int64')
 
+    AttedList+=[ 
+       atted("append", "long_name", "temperature", ar),
+       atted(mode="delete", attName=".*"),
+       atted(mode="append", attName="array", varName="time", Value=val,sType='ll'),
+       atted("nappend", "long", "random", 2**33, sType='ull')     
+    ]
 
-    # a1.prn()
-    print a2.prnOption()
-    print a3.prnOption()
-    print a4.prnOption()
-    print a5.prnOption()
-    print a6.prnOption()
-    print a7.prnOption()
-    print a8.prnOption()
-    print a9.prnOption()
-    print str(a10)
-    print str(a11)
-    print str(a12)
-    print str(a13)
-                  
-  
+   
+    for a in AttedList:
+      print a.prnOption()    
+       
 
 test()
