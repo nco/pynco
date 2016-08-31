@@ -108,7 +108,8 @@ is equivalent to:
 
 * atted wrapper
 
-        It is sometimes more tidy to define the atted objects in a seperate list then add that list the options in the nco call     
+        It is sometimes more tidy to define the atted objects in a seperate list then add that list to 
+        options in the nco call     
         
         opt=[   
             c.atted("o", "units", "temperature", "Kelvin"),
@@ -120,7 +121,7 @@ is equivalent to:
 
         You can also use keyword arguments in the call so the above options become
         opt=[   
-            c.atted(mode="o", attName="units", varName="temperature", Value="Kelvin",sType="c"),
+            c.atted(mode="o",      attName="units", varName="temperature", Value="Kelvin",sType="c"),
             c.atted(mode="create", attName="min",   varName="temperature", Value=0.16,sType='d' ),
             c.atted(mode="modify", attName="max",   varName="temperature", Value=283.01,sType='float64')
             c.atted(mode="create", attName="bnds",  varName="time", Value=[0.5,1.5],sType='float32')
