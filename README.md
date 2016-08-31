@@ -111,6 +111,7 @@ is equivalent to:
         It is sometimes more tidy to define the atted objects in a seperate list then add that list to 
         options in the nco call     
         
+        import custom as c 
         opt=[   
             c.atted("o", "units", "temperature", "Kelvin"),
             c.atted("c", "min",   "temperature", 0.16,'d' ),
@@ -127,10 +128,10 @@ is equivalent to:
             c.atted(mode="create", attName="bnds",  varName="time", Value=[0.5,1.5],sType='float32')
         ]  
 
-        Value can be a singleton or a list ( or a python iterable type or a numpy aray). 
+        Value can be a singleton or a list ( or a python iterable or a numpy aray). 
 
-        If sType is NOT included then the type is inferred from the first value in the list 
-        if sType is included then any values in the list are NOT of sType are converted to sType
+        If sType is NOT included then the type is inferred from the first member of the list 
+        if sType is included then any list members that  are NOT of sType are converted to sType
 
         For sType you can use the following:
         f,d,l/i,s,b, ub,us,u,ll,ull         
