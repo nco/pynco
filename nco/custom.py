@@ -6,7 +6,7 @@ import numpy as np
 DEBUG=1
 
 # check mode
-validModes = dict({
+VALID_MODES = dict({
     'append': 'a',
     'create': 'c',
     'delete': 'd',
@@ -16,7 +16,7 @@ validModes = dict({
 })
 
 # netCDF type names
-netTypes = dict({
+NET_TYPES = dict({
     'NC_FLOAT': 'f',
     'NC_DOUBLE': 'd',
     'NC_INT': 'i',
@@ -32,7 +32,7 @@ netTypes = dict({
 })
 
 # numpy type names
-npTypes = dict({
+NP_TYPES = dict({
     'float32': 'f',
     'float64': 'd',
     'int32': 'i',
@@ -49,7 +49,7 @@ npTypes = dict({
     'string': 'sng'
 })
 
-npTypesNP = dict({
+NP_TYPESNP = dict({
     'float32' : np.float32, 
     'float'   : np.float32 ,
     'f'       : np.float32 ,
@@ -85,144 +85,139 @@ npTypesNP = dict({
 })
 
 
-
 __prog__ = os.path.splitext(os.path.basename(__file__))[0]
 
 
 class atted(object):
 
-    def __init__(self, mode='overwrite',attName="",varName="", Value=None,  sType=None,**kwargs):
-    #def __init__(self, **kwargs):
+    def __init__(self, mode='overwrite',att_name="",var_name="", value=None,  stype=None,**kwargs):
         mode = kwargs.pop('mode', mode)
-        attName = kwargs.pop('attName', attName)
-        varName = kwargs.pop('varName', varName)
-        Value = kwargs.pop('Value', Value)
-        sType = kwargs.pop('sType',sType )
+        att_name = kwargs.pop('att_name', att_name)
+        var_name = kwargs.pop('var_name', var_name)
+        value = kwargs.pop('value', value)
+        stype = kwargs.pop('stype',stype )
             
-        if mode in validModes:
-           mode=validModes[mode]  
-        elif mode in validModes.keys():
+        if mode in VALID_MODES:
+           mode=VALID_MODES[mode]  
+        elif mode in VALID_MODES.values():
            pass
         else:
-           raise Exception('{0}: mode "{1}" not found'.format("atted()","atted():",mode))
+           raise Exception('mode "{0}" not found'.format(mode))
         
-        if attName==None or len(attName)==0: 
-            raise Exception ('{0}: attName zero length\n'.format("atted()"))
+        if not att_name:
+            raise ValueError('att_name is required')
 
 
         # set member defaults 
-        self.mode=mode
-        self.attName=attName
-        self.varName=varName 
-        self.npType=None
-        self.npValue=None    
+        self.mode = mode
+        self.att_name = att_name
+        self.var_name = var_name
+        self.np_type = None
+        self.np_value = None
 
         # dont bother about type & value
-        if self.mode=="d":
-            return None
+        if self.mode == "d":
+            return
         
         # deal with string quirk 
         # if user specifies type 'string' or 'sng' with a single character string 
         # the the output type should be 'sng and NOT 'c'. To do this we put the single string
         # inside a list the the prnOptions() method treats it as it would a list of strings
+        if isinstance(value, str) and stype in ['string', 'sng']:
+            value = [value]
 
-        if type(Value) is str and ( sType == 'string' or sType == 'sng'):  
-          Value=[Value]
-
-        # see if Value is iterable   
+        # see if value is iterable   
         try:
-            if type(Value) is str:
+            if isinstance(value, str):
               raise TypeError("str is not iterable (for our purposes")
-            it=iter(Value)    
+            it=iter(value)    
             inputType=type(next(it))   
             bIterable=True
-            del it   
         except Exception:
             bIterable=False 
-            inputType=type(Value) 
+            inputType=type(value) 
          
          
-        if sType:
+        if stype:
             try:    
-                npType=npTypesNP[sType] 
+                np_type=NP_TYPESNP[stype]
             except:
-                raise Exception('{0}: specified Type "{1}" not found.\nValid values {2}\n'.format("atted()", sType, npTypes.keys()))                          
+                raise Exception('specified Type "{0}" not found.\nValid values {1}\n'.format(stype, NP_TYPES.keys()))
         # set default types
         else: 
            if inputType is int:
-               npType=np.int32
+               np_type=np.int32
            elif inputType is float:
-               npType=np.float64
+               np_type=np.float64
            elif inputType is str:
-               npType=str
+               np_type=str
            # check the input type 
            else:  
                try: 
-                   x=npTypes[str(np.dtype(inputType)) ] 
-                   npType=inputType
+                   x=NP_TYPES[str(np.dtype(inputType)) ]
+                   np_type=inputType
                except:
-                   raise Exception('{0}: The type of Value "{1}" is NOT valid\nValid values {2}\n'.format("atted()", inputType, npTypes.keys()))                          
+                   raise Exception('The type of value "{0}" is NOT valid\nValid values {1}\n'.format(inputType, NP_TYPES.keys()))
 
         if bIterable:              
-            if npType is str:                          
+            if np_type is str:
                 # convert everything to string
-                sList=[ np.dtype(str).type(v) for v in Value]
+                sList=[np.dtype(str).type(v) for v in value]
                
                 # get max string length
-                lenMax=len ( max(sList,key=len) )
+                lenMax=len(max(sList,key=len))
                 # create array of 'fixed' length strings
-                npValue=np.array( sList , 'S{0}'.format(lenMax) )          
-       
-                # for v in Value:    
-                #     npValue.append(np.dtype(npType).type(v))
-            else: 
-                npValue=np.fromiter(Value, npType)  # create array from iterable all in one go !!
+                np_value=np.array(sList , 'S{0}'.format(lenMax))
+            else:
+                np_value=np.fromiter(value, np_type)  # create array from iterable all in one go !!
         else:
-            npValue=np.dtype(npType).type(Value) 
+            np_value=np.dtype(np_type).type(value)
 
-        
-        if npValue is not None:
-          self.npType=npType
-          self.npValue=npValue 
+
+        if np_value is not None:
+          self.np_type = np_type
+          self.np_value = np_value
                         
     def __str__(self):
-          return ('mode="{0}" attName="{1}" varName="{2} Value="{3}" type="{4}"\n'.format(self.mode, self.attName, self.varName, self.npValue, self.npType))
+          return ('mode="{0}" att_name="{1}" var_name="{2} value="{3}" type="{4}"\n'.format(self.mode, self.att_name, self.var_name, self.np_value, self.np_type))
 
     def prnOption(self): 
 
               
-        # modeChar=validModes[self.mode]
+        # modeChar=VALID_MODES[self.mode]
         # deal with delete - nb doesnt need any data 
-        if self.mode=='d':  
-            return ('-a "{0}","{1}",{2},,'.format(self.attName,self.varName, self.mode))   
+        if self.mode == 'd':
+            return ('-a "{0}","{1}",{2},,'.format(self.att_name,self.var_name, self.mode))   
 
-        bList= type(self.npValue) is list or type(self.npValue) is np.ndarray       
-  
+        bList = isinstance(self.np_value, (list, np.ndarray))
+
         # deal with string quirks here 
-        if self.npType is str:
+        # if isinstance(self.np_type, str):
+        if self.np_type is str:
            if bList:
-             typeChar="sng"
+             typeChar = "sng"
            else:
-             typeChar="c"
+             typeChar = "c"
         else:
-           npTypeStr=str(np.dtype(self.npType)) 
-           typeChar=npTypes[npTypeStr]    
+           npTypeStr=str(np.dtype(self.np_type))
+           typeChar=NP_TYPES[npTypeStr]
 
 
         # deal with a single value first   
         if not bList:
-           self.npValue=[self.npValue]
+           self.np_value = [self.np_value]
 
-        if self.npType is str:          
-            strArray=['"'+str(v)+'"'  for v in self.npValue]
+        # if isinstance(self.np_type, str):
+        if self.np_type is str:
+            strArray=['"'+str(v)+'"'  for v in self.np_value]
         else: 
-            strArray=[str(v)  for v in self.npValue]
+            strArray=[str(v)  for v in self.np_value]
 
 
-        strValue=",".join(strArray)
+        strvalue=",".join(strArray)
 
        
-        return ('-a "{0}","{1}",{2},{3},{4}'.format(self.attName,self.varName, self.mode, typeChar, strValue))  
+        return ('-a "{0}","{1}",{2},{3},{4}'.format(self.att_name,self.var_name, self.mode, typeChar, strvalue))  
            
 
 ################# main ################################
@@ -230,17 +225,17 @@ class atted(object):
 def test():
      
     AttedList=[ 
-      atted(mode="overwrite", attName="units", varName="temperature", Value="Kelvin"),
-      atted(mode="overwrite", attName="min", varName="temperature", Value=-127 ,sType='byte' ),
-      atted(mode="overwrite", attName="max", varName="temperature", Value=127, sType='int16'),
-      atted(mode="modify", attName="min-max", varName="pressure", Value=[100,10000], sType='int32'),
-      atted(mode="create", attName="array", varName="time_bands", Value=range(1,10,2), sType='d'),
-      atted(mode="append", attName="mean", varName="time_bands", Value=3.14159826253), #default to double
-      atted(mode="append", attName="mean_float", varName="time_bands", Value=3.14159826253, sType='float' ), #d convert type to float
-      atted(mode="append", attName="mean_sng", varName="time_bands", Value=3.14159826253,sType='char'),
-      atted(mode="nappend", attName="units", varName="height", Value="height in mm", sType='string'),
-      atted(mode="create", attName="long_name", varName="height", Value="height in feet"),
-      atted(mode="nappend", attName="units", varName="blob", Value=[1000000.,2.], sType='d'),
+      atted(mode="overwrite", att_name="units", var_name="temperature", value="Kelvin"),
+      atted(mode="overwrite", att_name="min", var_name="temperature", value=-127 ,stype='byte' ),
+      atted(mode="overwrite", att_name="max", var_name="temperature", value=127, stype='int16'),
+      atted(mode="modify", att_name="min-max", var_name="pressure", value=[100,10000], stype='int32'),
+      atted(mode="create", att_name="array", var_name="time_bands", value=range(1,10,2), stype='d'),
+      atted(mode="append", att_name="mean", var_name="time_bands", value=3.14159826253), #default to double
+      atted(mode="append", att_name="mean_float", var_name="time_bands", value=3.14159826253, stype='float' ), #d convert type to float
+      atted(mode="append", att_name="mean_sng", var_name="time_bands", value=3.14159826253,stype='char'),
+      atted(mode="nappend", att_name="units", var_name="height", value="height in mm", stype='string'),
+      atted(mode="create", att_name="long_name", var_name="height", value="height in feet"),
+      atted(mode="nappend", att_name="units", var_name="blob", value=[1000000.,2.], stype='d')
     ]  
 
     # regular function args
@@ -252,17 +247,21 @@ def test():
 
     ar=("mean", "sea","level","temperature",3.1459,2.0)
     val=np.dtype(np.complex).type(123456.0)
+    val2=np.dtype(np.bool).type(False)
+
+    # val=10.0
 
     AttedList+=[ 
        atted("append", "long_name", "temperature", ar),
-       atted(mode="delete", attName=".*"),
-       atted(mode="append", attName="array", varName="time", Value=val,sType='ll'),
-       atted("nappend", "long", "random", 2**33, sType='ull')     
+       atted(mode="delete", att_name=".*"),
+       atted(mode="append", att_name="array", var_name="time", value=val,stype='ll'),
+       atted(mode="append", att_name="bool", var_name="time", value=val2,stype='b'),
+       atted("nappend", "long", "random", 2**33, stype='ull')     
     ]
 
    
     for a in AttedList:
-      print a.prnOption()    
-       
+      print str(a)
+      print a.prnOption()
 
-test()
+# test()
