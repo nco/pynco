@@ -162,8 +162,8 @@ class Nco(object):
                         cmd.extend(o.split())
                     # only a custom object will have this method - eg the class atted
                     elif hasattr(o, 'prnOption'):
-                        if method_name == "ncatted":
-                           cmd.extend(o.prnOption().split())
+                        #if method_name == "ncatted":
+                        cmd.extend(o.prnOption().split())
                     else:
                         #we assume it's either a list, a tuple or any iterable.
                         cmd.extend(o)  
