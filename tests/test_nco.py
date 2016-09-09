@@ -27,7 +27,7 @@ import numpy as np
 import netCDF4
 import scipy
 import pytest
-from custom import atted
+from custom import atted,limit,limitsingle,rename
 
 
 
@@ -199,6 +199,22 @@ def test_atted():
 
     for a in AttedList:
         sys.stderr.write(a.prnOption())
+
+    LimitList = [limit("lat", 0.0, 88.1),
+                 limit("time", 0, 10, 3),
+                 limit("time", 1.0, 2e9, 3),
+                 limit(dmn_name="three", srt=10, end=30, srd=4, drn=2),
+                 limit(dmn_name="three", srd=4),
+                 limit(dmn_name="three", drn=3),
+                 limitsingle("three", 20.0)
+                 ]
+
+    for l in LimitList:
+        print l.prnOption()
+
+    tstrename = dict({'lon': 'longitude', 'lat': 'latitude', 'lev': 'level', 'dog': 'cat'})
+    myrename = rename("g", tstrename)
+    print myrename.prnOption()
 
     return
 
