@@ -24,7 +24,7 @@ import re
 import subprocess
 import tempfile
 import random
-import custom 
+from . import custom
 
 class NCOException(Exception):
     def __init__(self, stdout, stderr, returncode):
@@ -148,22 +148,13 @@ class Nco(object):
             #1. the nco operator
             cmd = [os.path.join(self.NCOpath, method_name)]
 
-            #2a. options keyword arg
-            # if options:
-            #     if isinstance(options, str):
-            #         cmd.extend(options.split())
-            #     else:
-            #         #we assume it's either a list, a tuple or any iterable.
-            #         cmd.extend(options)
-
             if options:
                 for o in options:
                     if isinstance(o,str):
                         cmd.extend(o.split())
                     # only a custom object will have this method - eg the class atted
-                    elif hasattr(o, 'prnOption'):
-                        #if method_name == "ncatted":
-                        cmd.extend(o.prnOption().split())
+                    elif hasattr(o, 'prn_option'):
+                        cmd.extend(o.prn_option().split())
                     else:
                         #we assume it's either a list, a tuple or any iterable.
                         cmd.extend(o)  
