@@ -1,5 +1,15 @@
+"""
+custom module:
+This is an extension to the nco module
+It contains wrappers to the most common NCO command line switches.
+This makes it more easy for users to specify strings and literals
+
+Atted - wrapper for -a swtch in ncatted
+Limit/LimtSingle - wrapper to -d switch
+Rename - wrapper for -a, -v, -d, -g switches in ncrename
+"""
+
 import os
-import re
 import sys
 import numpy as np
 
@@ -15,10 +25,10 @@ RENAME_TYPES = dict({
 
 # check mode
 VALID_MODES = dict({
-    'append': 'a',
     'create': 'c',
     'delete': 'd',
     'modify': 'm',
+    'append': 'a',
     'nappend': 'n',
     'overwrite': 'o'
 })
@@ -95,13 +105,16 @@ NP_TYPESNP = dict({
 __prog__ = os.path.splitext(os.path.basename(__file__))[0]
 
 
-# wrapper to -a ncatted command line switch
-# command line swtich looks like
-#
-# -a,att_nm,var_nm,mode,att_typ,att_val
-# mode = a,c,d,m,o,n (append, create, delete, modify, overwrite, nappend)
-# att_typ = f,d,l/i,s,c,b,ub,us,u,ll,ull,sng
-class atted(object):
+class Atted(object):
+    """
+    wrapper to -a ncatted command line switch
+     command line swtich looks like
+
+     -a,att_nm,var_nm,mode,att_typ,att_val
+     mode = a,c,d,m,o,n (append, create, delete, modify, overwrite, nappend)
+     att_typ = f,d,l/i,s,c,b,ub,us,u,ll,ull,sng
+     """
+
     def __init__(self, mode='overwrite', att_name="", var_name="", value=None, stype=None, **kwargs):
         mode = kwargs.pop('mode', mode)
         att_name = kwargs.pop('att_name', att_name)
@@ -114,7 +127,7 @@ class atted(object):
         elif mode in VALID_MODES.values():
             pass
         else:
-            raise Exception('mode "{0}" not found'.format(mode))
+            raise KeyError('mode "{0}" not found'.format(mode))
 
         if not att_name:
             raise ValueError('att_name is required')
@@ -142,35 +155,36 @@ class atted(object):
             if isinstance(value, str):
                 raise TypeError("str is not iterable (for our purposes")
             it = iter(value)
-            inputType = type(next(it))
-            bIterable = True
-        except Exception:
-            bIterable = False
-            inputType = type(value)
+            input_type = type(next(it))
+            biterable = True
+        # catch if value is str or  no __iter__  in value
+        except TypeError:
+            biterable = False
+            input_type = type(value)
 
         if stype:
             try:
                 np_type = NP_TYPESNP[stype]
             except:
-                raise Exception('specified Type "{0}" not found.\nValid values {1}\n'.format(stype, NP_TYPES.keys()))
+                raise KeyError('specified Type "{0}" not found.\nValid values {1}\n'.format(stype, NP_TYPES.keys()))
         # set default types
         else:
-            if inputType is int:
+            if input_type is int:
                 np_type = np.int32
-            elif inputType is float:
+            elif input_type is float:
                 np_type = np.float64
-            elif inputType is str:
+            elif input_type is str:
                 np_type = str
             # check the input type
             else:
                 try:
-                    x = NP_TYPES[str(np.dtype(inputType))]
-                    np_type = inputType
+                    x = NP_TYPES[str(np.dtype(input_type))]
+                    np_type = input_type
                 except:
-                    raise Exception(
-                        'The type of value "{0}" is NOT valid\nValid values {1}\n'.format(inputType, NP_TYPES.keys()))
+                    raise KeyError('The type of value "{0}" is NOT valid\nValid values {1}\n'.
+                                   format(input_type, NP_TYPES.keys()))
 
-        if bIterable:
+        if biterable:
             if np_type is str:
                 # convert everything to string
                 sList = [np.dtype(str).type(v) for v in value]
@@ -189,16 +203,16 @@ class atted(object):
             self.np_value = np_value
 
     def __str__(self):
-        return ('mode="{0}" att_name="{1}" var_name="{2} value="{3}" type="{4}"\n'.format(self.mode, self.att_name,
-                                                                                          self.var_name, self.np_value,
-                                                                                          self.np_type))
+        return ('mode="{0}" att_name="{1}" var_name="{2} value="{3}" type="{4}"\n'.
+                format(self.mode, self.att_name, self.var_name, self.np_value, self.np_type))
 
-    def prnOption(self):
+    def prn_option(self):
 
         # modeChar=VALID_MODES[self.mode]
         # deal with delete - nb doesnt need any data 
         if self.mode == 'd':
-            return ('-a "{0}","{1}",{2},,'.format(self.att_name, self.var_name, self.mode))
+            return ('-a "{0}","{1}",{2},,'.
+                    format(self.att_name, self.var_name, self.mode))
 
         bList = isinstance(self.np_value, (list, np.ndarray))
 
@@ -206,12 +220,12 @@ class atted(object):
         # if isinstance(self.np_type, str):
         if self.np_type is str:
             if bList:
-                typeChar = "sng"
+                type_char = "sng"
             else:
-                typeChar = "c"
+                type_char = "c"
         else:
-            npTypeStr = str(np.dtype(self.np_type))
-            typeChar = NP_TYPES[npTypeStr]
+            nptype_str = str(np.dtype(self.np_type))
+            type_char = NP_TYPES[nptype_str]
 
         # deal with a single value first
         if not bList:
@@ -225,14 +239,18 @@ class atted(object):
 
         strvalue = ",".join(strArray)
 
-        return ('-a "{0}","{1}",{2},{3},{4}'.format(self.att_name, self.var_name, self.mode, typeChar, strvalue))
+        return ('-a "{0}","{1}",{2},{3},{4}'.
+                format(self.att_name, self.var_name, self.mode, type_char, strvalue))
 
 
-# wrapper to the NCO command-line hyperslab option
-# format of  -d switch -d dmn_name,min,max,stride,subcycle
-# the dmn_name is mandatory all the other parameters are optional
-# but at least one must be specified for a valid hyperslab
-class limit(object):
+class Limit(object):
+    """
+    wrapper to the NCO command-line hyperslab option
+    format of  -d switch -d dmn_name,min,max,stride,subcycle
+    the dmn_name is mandatory all the other parameters are optional
+    but at least one must be specified for a valid hyperslab
+    """
+
     def __init__(self, dmn_name="", srt="", end="", srd="", drn="", **kwargs):
 
         dmn_name = kwargs.pop('dmn_name', dmn_name)
@@ -271,9 +289,10 @@ class limit(object):
             self.drn = np.dtype(np.int64).type(drn)
 
     def __str__(self):
-        return ("dmn_name={} srt={} end={} srd={} drn={}".format(self.dmn_name, self.srt, self.end, self.srd, self.drn))
+        return ("dmn_name={} srt={} end={} srd={} drn={}".
+                format(self.dmn_name, self.srt, self.end, self.srd, self.drn))
 
-    def prnOption(self):
+    def prn_option(self):
         bstr = '-d "{0}",{1},{2}'.format(self.dmn_name, self.srt, self.end)
 
         if self.drn != "":
@@ -288,32 +307,41 @@ class limit(object):
         return bstr
 
 
-# limitsingle is where user request a single limit and not a range - on the command line this looks like:
-#  eg "-d lon,10"  and NOT  "-d lon,10," (the comma signfies range to default end)
-#  the base method prnOption() has been overrided so that it just prints srt
-class limitsingle(limit):
+class LimitSingle(Limit):
+    """
+    limitsingle is where user request a single limit and not a range - on the command line this looks like:
+    eg "-d lon,10"  and NOT  "-d lon,10," (the comma signfies a range to default end)
+    """
+
     def __init__(self, dmn_name="", srt="", end="", srd="", drn="", **kwargs):
         if srt == "":
             raise Exception('must specify "srt"')
 
-        limit.__init__(self, dmn_name, srt, end, srd, drn, **kwargs)
+        Limit.__init__(self, dmn_name, srt, end, srd, drn, **kwargs)
 
-    def prnOption(self):
+    def prn_option(self):
+        """
+        Override of the base method in Limit.
+        This just prints the "srt" index
+        """
         bstr = '-d "{0}",{1}'.format(self.dmn_name, self.srt)
 
         return bstr
 
 
-# wrapper for the ncrename operator
-# command-line format
-#     rename attribute -a old_att_nm, new_att_nm
-#     rename variable  -v old_var_nm, new_var_nm
-#     rename dimension -d old_nm_nm,  new_dmn_nm
-#     rename groupg    -g old_grp_nm, new_grp_nm
-#
-#  rtype specifies the object to rename -
-#  rdict: a user defined dictionary - mapping old_nm _>new_nm
-class rename(object):
+class Rename(object):
+    """
+     wrapper for the ncrename operator
+     command-line format
+         rename attribute -a old_att_nm, new_att_nm
+         rename variable  -v old_var_nm, new_var_nm
+         rename dimension -d old_nm_nm,  new_dmn_nm
+         rename groupg    -g old_grp_nm, new_grp_nm
+    
+      rtype specifies the object to rename -
+      rdict: a user defined dictionary - mapping old_nm _>new_nm
+    """
+
     def __init__(self, rtype, rdict):
 
         if rtype in RENAME_TYPES.keys():
@@ -321,12 +349,12 @@ class rename(object):
         elif rtype in RENAME_TYPES.values():
             pass
         else:
-            raise Exception('rtype "{0}" not found'.format(rtype))
+            raise KeyError('rtype "{0}" not found'.format(rtype))
 
         self.rtype = rtype
         self.rDict = rdict
 
-    def prnOption(self):
+    def prn_option(self):
 
         lout = []
         for (sKey, Value) in self.rDict.items():
@@ -336,29 +364,30 @@ class rename(object):
         sout = " ".join(lout)
         return sout
 
+    ################# myTest ################################
 
-################# myTest ################################
+
 def mytest():
     AttedList = [
-        atted(mode="overwrite", att_name="units", var_name="temperature", value="Kelvin"),
-        atted(mode="overwrite", att_name="min", var_name="temperature", value=-127, stype='byte'),
-        atted(mode="overwrite", att_name="max", var_name="temperature", value=127, stype='int16'),
-        atted(mode="modify", att_name="min-max", var_name="pressure", value=[100, 10000], stype='int32'),
-        atted(mode="create", att_name="array", var_name="time_bands", value=range(1, 10, 2), stype='d'),
-        atted(mode="append", att_name="mean", var_name="time_bands", value=3.14159826253),  # default to double
-        atted(mode="append", att_name="mean_float", var_name="time_bands", value=3.14159826253, stype='float'),
+        Atted(mode="overwrite", att_name="units", var_name="temperature", value="Kelvin"),
+        Atted(mode="overwrite", att_name="min", var_name="temperature", value=-127, stype='byte'),
+        Atted(mode="overwrite", att_name="max", var_name="temperature", value=127, stype='int16'),
+        Atted(mode="modify", att_name="min-max", var_name="pressure", value=[100, 10000], stype='int32'),
+        Atted(mode="create", att_name="array", var_name="time_bands", value=range(1, 10, 2), stype='d'),
+        Atted(mode="append", att_name="mean", var_name="time_bands", value=3.14159826253),  # default to double
+        Atted(mode="append", att_name="mean_float", var_name="time_bands", value=3.14159826253, stype='float'),
         # d convert type to float
-        atted(mode="append", att_name="mean_sng", var_name="time_bands", value=3.14159826253, stype='char'),
-        atted(mode="nappend", att_name="units", var_name="height", value="height in mm", stype='string'),
-        atted(mode="create", att_name="long_name", var_name="height", value="height in feet"),
-        atted(mode="nappend", att_name="units", var_name="blob", value=[1000000., 2.], stype='d')
+        Atted(mode="append", att_name="mean_sng", var_name="time_bands", value=3.14159826253, stype='char'),
+        Atted(mode="nappend", att_name="units", var_name="height", value="height in mm", stype='string'),
+        Atted(mode="create", att_name="long_name", var_name="height", value="height in feet"),
+        Atted(mode="nappend", att_name="units", var_name="blob", value=[1000000., 2.], stype='d')
     ]
 
     # regular function args
     AttedList += [
-        atted("append", "long_name", "temperature", ("mean", "sea", "level", "temperature")),
-        atted("delete", "short_name", "temp"),
-        atted("delete", "long_name", "relative_humidity")
+        Atted("append", "long_name", "temperature", ("mean", "sea", "level", "temperature")),
+        Atted("delete", "short_name", "temp"),
+        Atted("delete", "long_name", "relative_humidity")
     ]
 
     ar = ("mean", "sea", "level", "temperature", 3.1459, 2.0)
@@ -368,33 +397,32 @@ def mytest():
     # val=10.0
 
     AttedList += [
-        atted("append", "long_name", "temperature", ar),
-        atted(mode="delete", att_name=".*"),
-        atted(mode="append", att_name="array", var_name="time", value=val, stype='ll'),
-        atted(mode="append", att_name="bool", var_name="time", value=val2, stype='b'),
-        atted("nappend", "long", "random", 2 ** 33, stype='ull')
+        Atted("append", "long_name", "temperature", ar),
+        Atted(mode="delete", att_name=".*"),
+        Atted(mode="append", att_name="array", var_name="time", value=val, stype='ll'),
+        Atted(mode="append", att_name="bool", var_name="time", value=val2, stype='b'),
+        Atted("nappend", "long", "random", 2 ** 33, stype='ull')
     ]
 
     for a in AttedList:
-        print a.prnOption()
+        print(a.prn_option())
 
-    LimitList = [limit("lat", 0.0, 88.1),
-                 limit("time", 0, 10, 3),
-                 limit("time", 1.0, 2e9, 3),
-                 limit(dmn_name="three", srt=10, end=30, srd=4, drn=2),
-                 limit(dmn_name="three", srd=4),
-                 limit(dmn_name="three", drn=3),
-                 limitsingle("three", 20.0)
+    LimitList = [Limit("lat", 0.0, 88.1),
+                 Limit("time", 0, 10, 3),
+                 Limit("time", 1.0, 2e9, 3),
+                 Limit(dmn_name="three", srt=10, end=30, srd=4, drn=2),
+                 Limit(dmn_name="three", srd=4),
+                 Limit(dmn_name="three", drn=3),
+                 LimitSingle("three", 20.0)
                  ]
 
     for l in LimitList:
-        print l.prnOption()
+        print(l.prn_option())
 
     tstrename = dict({'lon': 'longitude', 'lat': 'latitude', 'lev': 'level', 'dog': 'cat'})
-    myrename = rename("g", tstrename)
-    print myrename.prnOption()
+    myrename = Rename("g", tstrename)
+    print(myrename.prn_option())
 
 
 ################# main ######################################################
-
-#mytest()
+mytest()
