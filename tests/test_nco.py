@@ -27,7 +27,7 @@ import numpy as np
 import netCDF4
 import scipy
 import pytest
-from custom import atted,limit,limitsingle,rename
+from custom import Atted,Limit,LimitSingle,Rename
 
 
 
@@ -161,63 +161,62 @@ def test_returnCdf(foo_nc):
     for var in expected_vars:
         assert var in list(testCdf.variables.keys())
 
-@pytest.mark.trylast
+@pytest.fixture(scope="module")
 def test_atted():
     AttedList = [
-        atted(mode="overwrite", att_name="units", var_name="temperature", value="Kelvin"),
-        atted(mode="overwrite", att_name="min", var_name="temperature", value=-127, stype='byte'),
-        atted(mode="overwrite", att_name="max", var_name="temperature", value=127, stype='int16'),
-        atted(mode="modify", att_name="min-max", var_name="pressure", value=[100, 10000], stype='int32'),
-        atted(mode="create", att_name="array", var_name="time_bands", value=range(1, 10, 2), stype='d'),
-        atted(mode="append", att_name="mean", var_name="time_bands", value=3.14159826253),  # default to double
-        atted(mode="append", att_name="mean_float", var_name="time_bands", value=3.14159826253, stype='float'),
+        Atted(mode="overwrite", att_name="units", var_name="temperature", value="Kelvin"),
+        Atted(mode="overwrite", att_name="min", var_name="temperature", value=-127, stype='byte'),
+        Atted(mode="overwrite", att_name="max", var_name="temperature", value=127, stype='int16'),
+        Atted(mode="modify", att_name="min-max", var_name="pressure", value=[100, 10000], stype='int32'),
+        Atted(mode="create", att_name="array", var_name="time_bands", value=range(1, 10, 2), stype='d'),
+        Atted(mode="append", att_name="mean", var_name="time_bands", value=3.14159826253),  # default to double
+        Atted(mode="append", att_name="mean_float", var_name="time_bands", value=3.14159826253, stype='float'),
         # d convert type to float
-        atted(mode="append", att_name="mean_sng", var_name="time_bands", value=3.14159826253, stype='char'),
-        atted(mode="nappend", att_name="units", var_name="height", value="height in mm", stype='string'),
-        atted(mode="create", att_name="long_name", var_name="height", value="height in feet"),
-        atted(mode="nappend", att_name="units", var_name="blob", value=[1000000., 2.], stype='d')
+        Atted(mode="append", att_name="mean_sng", var_name="time_bands", value=3.14159826253, stype='char'),
+        Atted(mode="nappend", att_name="units", var_name="height", value="height in mm", stype='string'),
+        Atted(mode="create", att_name="long_name", var_name="height", value="height in feet"),
+        Atted(mode="nappend", att_name="units", var_name="blob", value=[1000000., 2.], stype='d')
     ]
 
     # regular function args
     AttedList += [
-        atted("append", "long_name", "temperature", ("mean", "sea", "level", "temperature")),
-        atted("delete", "short_name", "temp"),
-        atted("delete", "long_name", "relative_humidity")
+        Atted("append", "long_name", "temperature", ("mean", "sea", "level", "temperature")),
+        Atted("delete", "short_name", "temp"),
+        Atted("delete", "long_name", "relative_humidity")
     ]
 
     ar = ("mean", "sea", "level", "temperature", 3.1459, 2.0)
     val = np.dtype(np.complex).type(123456.0)
     val2 = np.dtype(np.bool).type(False)
 
+    # val=10.0
+
     AttedList += [
-        atted("append", "long_name", "temperature", ar),
-        atted(mode="delete", att_name=".*"),
-        atted(mode="append", att_name="array", var_name="time", value=val, stype='ll'),
-        atted(mode="append", att_name="bool", var_name="time", value=val2, stype='b'),
-        atted("nappend", "long", "random", 2 ** 33, stype='ull')
+        Atted("append", "long_name", "temperature", ar),
+        Atted(mode="delete", att_name=".*"),
+        Atted(mode="append", att_name="array", var_name="time", value=val, stype='ll'),
+        Atted(mode="append", att_name="bool", var_name="time", value=val2, stype='b'),
+        Atted("nappend", "long", "random", 2 ** 33, stype='ull')
     ]
 
     for a in AttedList:
-        sys.stderr.write(a.prnOption())
+        print(a.prn_option())
 
-    LimitList = [limit("lat", 0.0, 88.1),
-                 limit("time", 0, 10, 3),
-                 limit("time", 1.0, 2e9, 3),
-                 limit(dmn_name="three", srt=10, end=30, srd=4, drn=2),
-                 limit(dmn_name="three", srd=4),
-                 limit(dmn_name="three", drn=3),
-                 limitsingle("three", 20.0)
+    LimitList = [Limit("lat", 0.0, 88.1),
+                 Limit("time", 0, 10, 3),
+                 Limit("time", 1.0, 2e9, 3),
+                 Limit(dmn_name="three", srt=10, end=30, srd=4, drn=2),
+                 Limit(dmn_name="three", srd=4),
+                 Limit(dmn_name="three", drn=3),
+                 LimitSingle("three", 20.0)
                  ]
 
     for l in LimitList:
-        print l.prnOption()
+        print(l.prn_option())
 
     tstrename = dict({'lon': 'longitude', 'lat': 'latitude', 'lev': 'level', 'dog': 'cat'})
-    myrename = rename("g", tstrename)
-    print myrename.prnOption()
-
-    return
-
+    myrename = Rename("g", tstrename)
+    print(myrename.prn_option())
 
 def test_cdf_mod_scipy():
     nco = Nco(cdfMod='scipy')
