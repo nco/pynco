@@ -155,36 +155,41 @@ is equivalent to:
     (a)ppend, (c)reate, (d)elete, (m)odify, (n)append, (o)verwrite
 
 * Limit and LimitSingle wrapper
-   the following are equivalent
-   
-   
-   ncks -d time,0,8,2 -d time,10 -d lat,-20.0,20.0 -d lon,50.0,350.0  -d lev,,,4 
   
-   ```  
+		the following are equivalent
+
+    ```
+   ncks -d time,0,8,2 -d time,10 -d lat,-20.0,20.0 -d lon,50.0,350.0  -d lev,,,4 
+   and 
    opt=[ 
-   	c.Limit("time",0,8,2), 
-	c.LimitSingle("time",10), 
-	c.Limit("lat",-20.0,20.0), 
-	c.Limit(dmn_name="lon",srt=50.0,end=350.0), 	
-	c.Limit(dmn_name="lev",srd=4) 
+  		c.Limit("time",0,8,2), 
+		c.LimitSingle("time",10), 
+		c.Limit("lat",-20.0,20.0), 
+		c.Limit(dmn_name="lon",srt=50.0,end=350.0), 	
+		c.Limit(dmn_name="lev",srd=4) 
        ] 
 
    nco.ncks(input="in.nc", output="out.nc", options=opt)
    ```
 
 * Rename wrapper
+
   the  following are equivalent:
+  ```
   ncrename -v p,pressure -v t,temperature in.nc
 
   rDict={ 'p':'pressure', 't':'temperature' }   
   nco.ncrename(input="in.nc", options=[ c.Rename("variable",rDict)])
-
+  ```
+  
   rename coordinate variables (dim & var)
+  ```
   ncrename -d lon,longitude -d lat,latitude -v lon,longitude -v lat,latitude in.nc 
 
   rDict={ 'lon':'longitude', 'lat':'latitude' }   
   nco.ncrename(input="in.nc", options=[ c.Rename("d",rDict),  c.Rename("v",rDict) ])
-
+  ```
+  
 ## Support, Issues, Bugs, ...
 
 
