@@ -81,22 +81,25 @@ Now any NCO command (i.e. ncks, ncra, ...) can be called as a method of `nco`.
 
 * Set global NCO options:
 
-        nco.ncks(input=ifile, output=ofile, options="--netcdf4")
+		nco.ncks(input=ifile, output=ofile, options="--netcdf4")
 
 * Return multi-dimension arrays:
 
-        temperatures = nco.ncra(input=ifile, returnArray=True).variables['T'][:]
-        temperatures = nco.ncra(input=ifile, returnCdf=True).variables['T'][:]
-        temperatures = nco.ncra(input=ifile, returnArray='T')
+		temperatures = nco.ncra(input=ifile, returnArray=True).variables['T'][:]
+		temperatures = nco.ncra(input=ifile, returnCdf=True).variables['T'][:]
+		temperatures = nco.ncra(input=ifile, returnArray='T')
 
-* wrapper objects 
-  	The Atted opject is a convienent wrapper object to the `-a` command-line switch in ncatted
-        The Limit object is a wrapper to the `-d` command-line switch
-        The Rename is a wrapper for the `-a,  -v, -d , -g ` switches in ncrename 
+* Wrapper Objects 
 
-  	e.g  the following are equivalent
-        ncatted -a _FillValue,three_dmn_var_dbl,o,d,-9.99999979021476795361e+33 in.nc 
-        nco.ncatted(input="in.nc" options=[ c.atted("overwrite","_FillValue","three_dmn_var_dbl",-9.99999979021476795361e+33,'d')])     
+		The Atted opject is a convienent wrapper object to the `-a` command-line switch in ncatted.
+		The Limit object is a wrapper to the `-d` command-line switch.
+		The Rename is a wrapper for the `-a,  -v, -d , -g ` switches in ncrename.
+
+  	e.g  the following are equivalent:
+	```
+        ncatted -a _FillValue,three_dmn,o,d,-9.91e+33 in.nc
+        nco.ncatted(input="in.nc" options=[ c.atted("overwrite","_FillValue","three_dmn",-9.91e+33,'d')])     
+	```	
      	see more examples below 
 
 ## Tempfile helpers
@@ -110,49 +113,64 @@ is equivalent to:
     temperatures = nco.ncra(input=ifile, output=tempfile.mktemp(), returnArray='T')
 
 * Atted wrapper
-    It is sometimes more tidy to define the atted objects in a seperate list then add that list the options in the nco call     
-    opt=[   c.Atted("o", "units", "temperature", "Kelvin"),<br/>
-            c.Atted("c", "min",   "temperature", 0.16,'d' ), <br/>
-            c.Atted("m", "max",   "temperature", 283.01,'float64'), <br/>
-            c.Atted("c", "bnds","time",[0.5,1.5],'f')  <br/>
-        ]<br/>  
-    nco.ncatted(input="in.nc",options=opt)     
 
-   You can also use keyword arguments in the call so the above options become <br/>
-    opt=[   c.Atted(mode="o", attName="units", varName="temperature", Value="Kelvin",sType="c"),<br/>
-            c.Atted(mode="create", attName="min",   varName="temperature", Value=0.16,sType='d' ), <br/> 
-            c.Atted(mode="modify", attName="max",   varName="temperature", Value=283.01,sType='float64'), <br/>
-            c.Atted(mode="create", attName="bnds",  varName="time", Value=[0.5,1.5],sType='float32'), <br/>
+
+	It is sometimes more tidy to define the atted objects in a seperate list then add that list the options in the nco call
+    
+    ```
+    opt=[   
+		c.Atted("o", "units", "temperature", "Kelvin"),
+		c.Atted("c", "min",   "temperature", 0.16,'d' ), 
+		c.Atted("m", "max",   "temperature", 283.01,'float64'),
+		c.Atted("c", "bnds","time",[0.5,1.5],'f') 
         ]  
-
+    nco.ncatted(input="in.nc",options=opt)     
+    ```
+    
+   You can also use keyword arguments in the call so the above options become
+   
+    ```
+    opt=[   
+    		c.Atted(mode="o", attName="units", varName="temperature", Value="Kelvin",sType="c"), 
+        	c.Atted(mode="create", attName="min",   varName="temperature", Value=0.16,sType='d' ), 
+        	c.Atted(mode="modify", attName="max",   varName="temperature", Value=283.01,sType='float64'), 
+        	c.Atted(mode="create", attName="bnds",  varName="time", Value=[0.5,1.5],sType='float32') 
+        ]  
+    ```  
+    
     Value can be a single value  or a list ( or any python iterable type or a numpy array).
 
-    If sType is NOT included then the type is inferred from the first value in the list <br/>
-    if sType is included then any values in the list are NOT of sType are converted to sType  <br/> <br/>
+    If sType is NOT included then the type is inferred from the first value in the list 
+    if sType is included then any values in the list are NOT of sType are converted to sType
 
-    For sType you can use the following: <br/> 
-    f, d, l/i, s, b, ub, us, u, ll, ull  <br/>       
-    Or their numpy equivalents <br/>
-    float32, float64, int32, int16, byte, ubyte, uint16, uint32, int64, uint64  <br/>  
+    For sType you can use the following:
+    f, d, l/i, s, b, ub, us, u, ll, ull         
+    Or their numpy equivalents
+    float32, float64, int32, int16, byte, ubyte, uint16, uint32, int64, uint64    
 
-    For a netCDF3 character string use "c"or "char" <br/>
-    For netCDF4 string(s) use "sng" or "string" <br/>
+    For a netCDF3 character string use "c"or "char"
+    For netCDF4 string(s) use "sng" or "string"
  
-    For mode you can use the single character abbreviations as per ncatted or the following words:  <br/>
+    For mode you can use the single character abbreviations as per ncatted or the following words:
     (a)ppend, (c)reate, (d)elete, (m)odify, (n)append, (o)verwrite
 
 * Limit and LimitSingle wrapper
    the following are equivalent
+   
+   
    ncks -d time,0,8,2 -d time,10 -d lat,-20.0,20.0 -d lon,50.0,350.0  -d lev,,,4 
   
-   opt=[ c.Limit("time",0,8,2), 
-   	 c.LimitSingle("time",10), 
-         c.Limit("lat",-20.0,20.0), 
-	 c.Limit(dmn_name="lon",srt=50.0,end=350.0), 	
-         c.Limit(dmn_name="lev",srd=4) 
-      ] 
+   ```  
+   opt=[ 
+   	c.Limit("time",0,8,2), 
+	c.LimitSingle("time",10), 
+	c.Limit("lat",-20.0,20.0), 
+	c.Limit(dmn_name="lon",srt=50.0,end=350.0), 	
+	c.Limit(dmn_name="lev",srd=4) 
+       ] 
 
    nco.ncks(input="in.nc", output="out.nc", options=opt)
+   ```
 
 * Rename wrapper
   the  following are equivalent:
