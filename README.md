@@ -140,24 +140,23 @@ is equivalent to:
     
     Value can be a single value  or a list ( or any python iterable type or a numpy array).
 
-    If sType is NOT included then the type is inferred from the first value in the list 
-    if sType is included then any values in the list are NOT of sType are converted to sType
+    If sType is NOT included then the type is inferred from the first value in the list<br/> 
+    if sType is included then any values in the list are NOT of sType are converted to sType<br/><br/>
 
     For sType you can use the following:
     f, d, l/i, s, b, ub, us, u, ll, ull         
     Or their numpy equivalents
     float32, float64, int32, int16, byte, ubyte, uint16, uint32, int64, uint64    
 
-    For a netCDF3 character string use "c"or "char"
-    For netCDF4 string(s) use "sng" or "string"
+    For a netCDF3 character string use "c"or "char"<br/>
+    For netCDF4 string(s) use "sng" or "string"<br/>
  
-    For mode you can use the single character abbreviations as per ncatted or the following words:
-    (a)ppend, (c)reate, (d)elete, (m)odify, (n)append, (o)verwrite
+    For mode you can use the single character abbreviations as per ncatted or the following words:<br/>
+    (a)ppend, (c)reate, (d)elete, (m)odify, (n)append, (o)verwrite<br/>
 
 * Limit and LimitSingle wrapper
   
-		the following are equivalent
-
+	the following are equivalent
     ```
    ncks -d time,0,8,2 -d time,10 -d lat,-20.0,20.0 -d lon,50.0,350.0  -d lev,,,4 
    and 
