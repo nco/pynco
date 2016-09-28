@@ -119,10 +119,10 @@ is equivalent to:
     
     ```
     opt=[   
-		c.Atted("o", "units", "temperature", "Kelvin"),
-		c.Atted("c", "min",   "temperature", 0.16,'d' ), 
-		c.Atted("m", "max",   "temperature", 283.01,'float64'),
-		c.Atted("c", "bnds","time",[0.5,1.5],'f') 
+			c.Atted("o", "units", "temperature", "Kelvin"),
+			c.Atted("c", "min",   "temperature", 0.16,'d' ), 
+			c.Atted("m", "max",   "temperature", 283.01,'float64'),
+			c.Atted("c", "bnds","time",[0.5,1.5],'f') 
         ]  
     nco.ncatted(input="in.nc",options=opt)     
     ```
@@ -131,8 +131,8 @@ is equivalent to:
    
     ```
     opt=[   
-    		c.Atted(mode="o", attName="units", varName="temperature", Value="Kelvin",sType="c"), 
-        	c.Atted(mode="create", attName="min",   varName="temperature", Value=0.16,sType='d' ), 
+			c.Atted(mode="o", attName="units", varName="temperature", Value="Kelvin",sType="c"), 
+			c.Atted(mode="create", attName="min",   varName="temperature", Value=0.16,sType='d' ), 
         	c.Atted(mode="modify", attName="max",   varName="temperature", Value=283.01,sType='float64'), 
         	c.Atted(mode="create", attName="bnds",  varName="time", Value=[0.5,1.5],sType='float32') 
         ]  
