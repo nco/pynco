@@ -95,7 +95,7 @@ Now any NCO command (i.e. ncks, ncra, ...) can be called as a method of `nco`.
         The Rename is a wrapper for the `-a,  -v, -d , -g ` switches in ncrename 
 
   	e.g  the following are equivalent
-        ncatted -a _FillValue,three_dmn_var_dbl,o,d,-9.99999979021476795361e+33 in.nc
+        ncatted -a _FillValue,three_dmn_var_dbl,o,d,-9.99999979021476795361e+33 in.nc 
         nco.ncatted(input="in.nc" options=[ c.atted("overwrite","_FillValue","three_dmn_var_dbl",-9.99999979021476795361e+33,'d')])     
      	see more examples below 
 
@@ -111,34 +111,34 @@ is equivalent to:
 
 * Atted wrapper
     It is sometimes more tidy to define the atted objects in a seperate list then add that list the options in the nco call     
-    opt=[   c.Atted("o", "units", "temperature", "Kelvin"),
-            c.Atted("c", "min",   "temperature", 0.16,'d' ),
-            c.Atted("m", "max",   "temperature", 283.01,'float64')
-            c.Atted("c", "bnds","time",[0.5,1.5],'f') 
-        ]  
+    opt=[   c.Atted("o", "units", "temperature", "Kelvin"),<br/>
+            c.Atted("c", "min",   "temperature", 0.16,'d' ), <br/>
+            c.Atted("m", "max",   "temperature", 283.01,'float64'), <br/>
+            c.Atted("c", "bnds","time",[0.5,1.5],'f')  <br/>
+        ]<br/>  
     nco.ncatted(input="in.nc",options=opt)     
 
-   You can also use keyword arguments in the call so the above options become
-    opt=[   c.Atted(mode="o", attName="units", varName="temperature", Value="Kelvin",sType="c"),
-            c.Atted(mode="create", attName="min",   varName="temperature", Value=0.16,sType='d' ),
-            c.Atted(mode="modify", attName="max",   varName="temperature", Value=283.01,sType='float64')
-            c.Atted(mode="create", attName="bnds",  varName="time", Value=[0.5,1.5],sType='float32')
+   You can also use keyword arguments in the call so the above options become <br/>
+    opt=[   c.Atted(mode="o", attName="units", varName="temperature", Value="Kelvin",sType="c"),<br/>
+            c.Atted(mode="create", attName="min",   varName="temperature", Value=0.16,sType='d' ), <br/> 
+            c.Atted(mode="modify", attName="max",   varName="temperature", Value=283.01,sType='float64'), <br/>
+            c.Atted(mode="create", attName="bnds",  varName="time", Value=[0.5,1.5],sType='float32'), <br/>
         ]  
 
     Value can be a single value  or a list ( or any python iterable type or a numpy array).
 
-    If sType is NOT included then the type is inferred from the first value in the list 
-    if sType is included then any values in the list are NOT of sType are converted to sType
+    If sType is NOT included then the type is inferred from the first value in the list <br/>
+    if sType is included then any values in the list are NOT of sType are converted to sType  <br/> <br/>
 
-    For sType you can use the following:
-    f,d,l/i,s,b, ub,us,u,ll,ull         
-    Or their numpy equivalents
-    float32,float64,int32,int16,byte,ubyte,uint16,uint32,int64,uint64    
+    For sType you can use the following: <br/> 
+    f, d, l/i, s, b, ub, us, u, ll, ull  <br/>       
+    Or their numpy equivalents <br/>
+    float32, float64, int32, int16, byte, ubyte, uint16, uint32, int64, uint64  <br/>  
 
-    For a netCDF3 character string use "c"or "char"
-    For netCDF4 string(s) use "sng" or "string"
+    For a netCDF3 character string use "c"or "char" <br/>
+    For netCDF4 string(s) use "sng" or "string" <br/>
  
-    For mode you can use the single character abbreviations as per ncatted or the following words:
+    For mode you can use the single character abbreviations as per ncatted or the following words:  <br/>
     (a)ppend, (c)reate, (d)elete, (m)odify, (n)append, (o)verwrite
 
 * Limit and LimitSingle wrapper
