@@ -84,7 +84,7 @@ def test_ncks_append_variables(foo_nc, bar_nc):
     ncks -A fl_1.nc fl_2.nc
     """
     nco = Nco(debug=True)
-    nco.ncks(input=foo_nc, output=bar_nc, options='-A')
+    nco.ncks(input=foo_nc, output=bar_nc, options=['-A'])
     nco.ncks(input=foo_nc, output=bar_nc, append=True)
     nco.ncks(input=foo_nc, output=bar_nc, apn=True)
     nco.ncks(input=foo_nc, output=bar_nc)
@@ -153,14 +153,14 @@ def test_determining_file_format(foo3c, foo364, foo4c, hdf_file):
     ncks -D 2 -M foo_4.nc
     """
     nco = Nco(debug=True)
-    nco.ncks(input=foo3c, options='-M')
-    nco.ncks(input=foo364, options='-M')
-    nco.ncks(input=foo4c, options='-M')
+    nco.ncks(input=foo3c, options=['-M'])
+    nco.ncks(input=foo364, options=['-M'])
+    nco.ncks(input=foo4c, options=['-M'])
     assert os.path.isfile(hdf_file)
-    nco.ncks(input=hdf_file, options='-D 2 -M')
+    nco.ncks(input=hdf_file, options=['-D 2 -M'])
     # nco.ncks(input='http://thredds-test.ucar.edu/thredds/dodsC/testdods/in.nc',
     #          options='-D 2 -M') # does not work from command line either
-    nco.ncks(input=foo4c, options='-D 2 -M')
+    nco.ncks(input=foo4c, options=['-D 2 -M'])
 
 
 def test_file_conversion(foo3c, foo4c):

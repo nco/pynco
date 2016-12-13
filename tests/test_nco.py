@@ -246,5 +246,5 @@ def test_initOptions():
 @pytest.mark.usefixtures("bar_nc")
 def test_operatorPrintsOut(bar_nc):
     nco = Nco()
-    dump = nco.ncdump(input=bar_nc, options='-h')
+    dump = nco.ncdump(input=bar_nc, options=['-h'])
     print(dump)
