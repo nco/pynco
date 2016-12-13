@@ -25,6 +25,7 @@ import subprocess
 import tempfile
 import random
 from . import custom
+from distutils.version import LooseVersion
 
 class NCOException(Exception):
     def __init__(self, stdout, stderr, returncode):
@@ -208,6 +209,21 @@ class Nco(object):
             if force:
                 cmd.append('--overwrite')
 
+            # Check if operator appends
+            operatorAppends = False
+            for piece in cmd:
+                 if piece in self.AppendOperatorsPattern:
+                     operatorAppends = True
+                     
+            # If operator appends and NCO version >= 4.3.7, remove -H -M -m
+            # and their ancillaries from outputOperatorsPattern
+            if operatorAppends and method_name == 'ncks':
+                 nco_version = self.version()
+                 if LooseVersion(nco_version) >= LooseVersion('4.3.7'):
+                     self.outputOperatorsPattern = ['ncdump', '-r', '--revision', '--vrs', '--version']
+ 
+
+
             # Check if operator prints out
             for piece in cmd:
                 if piece in self.outputOperatorsPattern or \
@@ -316,8 +332,8 @@ class Nco(object):
             return False
 
     def checkNco(self):
-        if (self.hasNco()):
-            call = [self.ncra, ' --version']
+        if self.hasNco():
+            call = [os.path.join(self.NCOpath, 'ncra'), '--version']
             proc = subprocess.Popen(' '.join(call),
                                     shell=True,
                                     stderr=subprocess.PIPE,
@@ -339,14 +355,19 @@ class Nco(object):
 
     def version(self):
         # return NCO's version
-        proc = subprocess.Popen([self.ncra, '--version'],
+        proc = subprocess.Popen([os.path.join(self.NCOpath, 'ncra'),
+                                 '--version'],
                                 stderr=subprocess.PIPE,
                                 stdout=subprocess.PIPE)
         ret = proc.communicate()
         ncra_help = ret[1]
-        match = re.search('NCO netCDF Operators version "(\d.*)" last ',
+        match = re.search('NCO netCDF Operators version (\d.*) ',
                           ncra_help)
-        return match.group(1)
+        # some versions write version information in quotation marks
+        if not match:
+            match = re.search('NCO netCDF Operators version "(\d.*)" ',
+                              ncra_help)
+        return match.group(1).split(' ')[0]
 
     def readCdf(self, infile):
         """Return a cdf handle created by the available cdf library.
