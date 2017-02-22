@@ -116,10 +116,10 @@ def test_command_line_options(foo_nc):
     ncks --dbg_lvl 3 in.nc # Long option, alternate form
     """
     nco = Nco(debug=True)
-    test = nco.ncks(input=foo_nc, options='-D 3')
-    test = nco.ncks(input=foo_nc, options='--dbg_lvl=3')
-    test = nco.ncks(input=foo_nc, options='--dbg_lvl 3')
-    test = nco.ncks(input=foo_nc, dbg_lvl=3)
+    nco.ncks(input=foo_nc, options='-D 3')
+    nco.ncks(input=foo_nc, options='--dbg_lvl=3')
+    nco.ncks(input=foo_nc, options='--dbg_lvl 3')
+    nco.ncks(input=foo_nc, dbg_lvl=3)
 
 
 def test_specifying_input_files(testfiles8589):
@@ -231,63 +231,3 @@ def test_hyperslabs(testfileglobal):
              dimension='lon,-3,-1')
     nco.ncks(input=testfileglobal, output='out.nc', fortran=True,
              dimension='lon,-3')
-
-# def test_record_appending():
-#     """
-#     3.17 Record Appending
-
-#     ncrcat -O fl_1.nc fl_2.nc fl_3.nc
-#     ncrcat --rec_apn fl_1.nc fl_2.nc
-#     ncrcat --rec_apn --no_tmp_fl fl_1.nc fl_2.nc
-#     """
-#     nco = Nco(debug=True)
-#     nco.ncrcat(input=['fl_1.nc', 'fl_2.nc'], output='fl_2.nc', options='-O')
-#     nco.ncrcat(input='fl_1.nc', output='fl_2.nc', rec_apn=True)
-#     nco.ncrcat(input='fl_1.nc', output='fl_2.nc', rec_apn=True,
-                 # no_tmp_fl=True)
-
-# def test_duration():
-#     """
-#     3.18 Duration
-
-#     # Step 1: Compute climatological summertime mean
-#     ncra -O -F -d time,6,,12,3 -n 150,4,1 1850.nc clm_JJA.nc
-
-#     # Step 1: Archive all 150 summertime means in one file
-#     ncra --mro -O -F -d time,6,,12,3 -n 150,4,1 1850.nc 1850_2009_JJA.nc
-#     ncra --mro -O -d time,,,12,12 -n 150,4,1 1850.nc 1850_2009.nc
-#     """
-#     nco = Nco(debug=True)
-#     nco.ncra(input='1850.nc', output='clm_JJA.nc',
-#              overwrite=True, mro=True, fortran=True,
-#              dimension='time,6,,12,3', nintap='150,4,1')
-#     nco.ncra(input='1850.nc', output='1850_2009_JJA.nc',
-#              overwrite=True, mro=True, fortran=True,
-#              dimension='time,6,,12,3', nintap='150,4,1'))
-#     nco.ncra(input='1850.nc', output='1850_2009.nc',
-#              overwrite=True, mro=True, dimension='time,,,12,12',
-#              nintap='150,4,1'))
-
-# def test_multislabs():
-#     """
-#     3.19 Multislabs
-
-#     ncks -d lon,10.,20. -d lon,80.,90. in.nc out.nc
-#     ncks -d lon,10.,15. -d lon,15.,20. -d lon,80.,90. in.nc out.nc
-#     ncks -d lon,0,4 -d lon,2,9,2 in.nc out.nc
-#     ncks -d species,0,1 -d species,5 -d lon,0,4 -d lon,2,9,2 in.nc out.nc
-#     """
-#     nco = Nco(debug=True)
-#     nco.ncks(input='in.nc', output='out.nc', options='-d lon,10.,20. -d lon,80.,90.')
-#     nco.ncks(input='in.nc', output='out.nc', options='-d lon,0,4 -d lon,2,9,2')
-#     # Note: we're using the options keyword here because python wont except two dimension keywords
-
-# def test_wrapped_coordinates():
-#     """
-#     3.20 Wrapped Coordinates
-#     ncks -d lon,340.,50. in.nc out.nc
-#     ncks -d lon,340.,50. -d lat,10.,35. in.nc out.nc
-#     """
-#     nco = Nco(debug=True)
-#     nco.ncks(input='in.nc', output='out.nc', dimension='lon,340.,50.')
-#     nco.ncks(input='in.nc', output='out.nc', options='-d lon,340.,50. -d lat,10.,35.')
