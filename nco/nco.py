@@ -24,7 +24,9 @@ import re
 import subprocess
 import tempfile
 import random
-import custom 
+import six
+from . import custom
+from distutils.version import LooseVersion
 
 class NCOException(Exception):
     def __init__(self, stdout, stderr, returncode):
@@ -87,7 +89,7 @@ class Nco(object):
 
         inline_cmd = cmd
         if inputs is not None:
-            if isinstance(inputs, str):
+            if isinstance(inputs, six.string_types):
                 inline_cmd.append(inputs)
             else:
                 #we assume it's either a list, a tuple or any iterable.
@@ -148,22 +150,13 @@ class Nco(object):
             #1. the nco operator
             cmd = [os.path.join(self.NCOpath, method_name)]
 
-            #2a. options keyword arg
-            # if options:
-            #     if isinstance(options, str):
-            #         cmd.extend(options.split())
-            #     else:
-            #         #we assume it's either a list, a tuple or any iterable.
-            #         cmd.extend(options)
-
             if options:
                 for o in options:
-                    if isinstance(o,str):
+                    if isinstance(o, six.string_types):
                         cmd.extend(o.split())
                     # only a custom object will have this method - eg the class atted
-                    elif hasattr(o, 'prnOption'):
-                        if method_name == "ncatted":
-                           cmd.extend(o.prnOption().split())
+                    elif hasattr(o, 'prn_option'):
+                        cmd.extend(o.prn_option().split())
                     else:
                         #we assume it's either a list, a tuple or any iterable.
                         cmd.extend(o)  
@@ -194,7 +187,7 @@ class Nco(object):
                         cmd.append("--{0}".format(key))
                         if cmd[-1] in (self.DontForcePattern):
                             force = False
-                    elif isinstance(val, str) or \
+                    elif isinstance(val, six.string_types) or \
                             isinstance(val, int) or \
                             isinstance(val, float):
                         cmd.append("--{0}={1}".format(key, val))
@@ -207,7 +200,7 @@ class Nco(object):
                 for key, val in list(self.options.items()):
                     if val and type(val) == bool:
                         cmd.append("--"+key)
-                    elif isinstance(val, str):
+                    elif isinstance(val, six.string_types):
                         cmd.append("--{0}={1}".format(key, val))
                     else:
                         #we assume it's either a list, a tuple or any iterable.
@@ -216,6 +209,21 @@ class Nco(object):
             # 3.  Add in overwrite if necessary
             if force:
                 cmd.append('--overwrite')
+
+            # Check if operator appends
+            operatorAppends = False
+            for piece in cmd:
+                 if piece in self.AppendOperatorsPattern:
+                     operatorAppends = True
+                     
+            # If operator appends and NCO version >= 4.3.7, remove -H -M -m
+            # and their ancillaries from outputOperatorsPattern
+            if operatorAppends and method_name == 'ncks':
+                 nco_version = self.version()
+                 if LooseVersion(nco_version) >= LooseVersion('4.3.7'):
+                     self.outputOperatorsPattern = ['ncdump', '-r', '--revision', '--vrs', '--version']
+ 
+
 
             # Check if operator prints out
             for piece in cmd:
@@ -238,7 +246,7 @@ class Nco(object):
                         raise NCOException(**retvals)
             else:
                 if output:
-                    if isinstance(output, str):
+                    if isinstance(output, six.string_types):
                         cmd.append("--output={0}".format(output))
                     else:
                         # we assume it's an iterable.
@@ -325,8 +333,8 @@ class Nco(object):
             return False
 
     def checkNco(self):
-        if (self.hasNco()):
-            call = [self.ncra, ' --version']
+        if self.hasNco():
+            call = [os.path.join(self.NCOpath, 'ncra'), '--version']
             proc = subprocess.Popen(' '.join(call),
                                     shell=True,
                                     stderr=subprocess.PIPE,
@@ -348,14 +356,19 @@ class Nco(object):
 
     def version(self):
         # return NCO's version
-        proc = subprocess.Popen([self.ncra, '--version'],
+        proc = subprocess.Popen([os.path.join(self.NCOpath, 'ncra'),
+                                 '--version'],
                                 stderr=subprocess.PIPE,
                                 stdout=subprocess.PIPE)
         ret = proc.communicate()
         ncra_help = ret[1]
-        match = re.search('NCO netCDF Operators version "(\d.*)" last ',
+        match = re.search('NCO netCDF Operators version (\d.*) ',
                           ncra_help)
-        return match.group(1)
+        # some versions write version information in quotation marks
+        if not match:
+            match = re.search('NCO netCDF Operators version "(\d.*)" ',
+                              ncra_help)
+        return match.group(1).split(' ')[0]
 
     def readCdf(self, infile):
         """Return a cdf handle created by the available cdf library.

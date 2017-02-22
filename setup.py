@@ -39,5 +39,5 @@ setup(name='nco',
                    "Topic :: Utilities",
                    "Operating System :: POSIX",
                    "Programming Language :: Python",
-                   ],
+                   ], install_requires=['six']
       )
