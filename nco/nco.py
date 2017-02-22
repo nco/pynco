@@ -24,6 +24,7 @@ import re
 import subprocess
 import tempfile
 import random
+import six
 from . import custom
 from distutils.version import LooseVersion
 
@@ -88,7 +89,7 @@ class Nco(object):
 
         inline_cmd = cmd
         if inputs is not None:
-            if isinstance(inputs, str):
+            if isinstance(inputs, six.string_types):
                 inline_cmd.append(inputs)
             else:
                 #we assume it's either a list, a tuple or any iterable.
@@ -151,7 +152,7 @@ class Nco(object):
 
             if options:
                 for o in options:
-                    if isinstance(o,str):
+                    if isinstance(o, six.string_types):
                         cmd.extend(o.split())
                     # only a custom object will have this method - eg the class atted
                     elif hasattr(o, 'prn_option'):
@@ -186,7 +187,7 @@ class Nco(object):
                         cmd.append("--{0}".format(key))
                         if cmd[-1] in (self.DontForcePattern):
                             force = False
-                    elif isinstance(val, str) or \
+                    elif isinstance(val, six.string_types) or \
                             isinstance(val, int) or \
                             isinstance(val, float):
                         cmd.append("--{0}={1}".format(key, val))
@@ -199,7 +200,7 @@ class Nco(object):
                 for key, val in list(self.options.items()):
                     if val and type(val) == bool:
                         cmd.append("--"+key)
-                    elif isinstance(val, str):
+                    elif isinstance(val, six.string_types):
                         cmd.append("--{0}={1}".format(key, val))
                     else:
                         #we assume it's either a list, a tuple or any iterable.
@@ -245,7 +246,7 @@ class Nco(object):
                         raise NCOException(**retvals)
             else:
                 if output:
-                    if isinstance(output, str):
+                    if isinstance(output, six.string_types):
                         cmd.append("--output={0}".format(output))
                     else:
                         # we assume it's an iterable.
