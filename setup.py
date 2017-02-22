@@ -22,18 +22,19 @@ License:
 
 from setuptools import setup
 
-version = '0.0.2'
+version = '0.0.3'
 
 setup(name='nco',
       version=version,
       author="Joe Hamman",
-      author_email="jhamman@hydro.washington.edu",
+      author_email="jhamman@ucar.edu",
       license="GPLv2",
       description="""python bindings to NCO""",
       packages=['nco'],
-      py_modules=["nco.nco"],
-      url="https://raw2.github.com/jhamman/nco-bindings/",
-      download_url="https://raw2.github.com/jhamman/nco-bindings/tarball/{0}".format(version),
+      py_modules=["nco.nco", "nco.custom"],
+      url="https://github.com/nco/pynco",
+      download_url="https://raw2.github.com/nco/pynco/tarball/{0}".format(
+          version),
       keywords=['netcdf', 'climate'],
       classifiers=["Development Status :: 4 - Beta",
                    "Topic :: Utilities",

@@ -25,8 +25,8 @@ import subprocess
 import tempfile
 import random
 import six
-from . import custom
 from distutils.version import LooseVersion
+
 
 class NCOException(Exception):
     def __init__(self, stdout, stderr, returncode):
@@ -38,6 +38,7 @@ class NCOException(Exception):
 
     def __str__(self):
         return self.msg
+
 
 class Nco(object):
     def __init__(self, returnCdf=False, returnNoneOnError=False,
@@ -70,10 +71,10 @@ class Nco(object):
         self.DontForcePattern = (self.outputOperatorsPattern +
                                  self.OverwriteOperatorsPattern +
                                  self.AppendOperatorsPattern)
-        # I/O from call 
-        self.returncode=0
-        self.stdout="" 
-        self.stderr=""        
+        # I/O from call
+        self.returncode = 0
+        self.stdout = ""
+        self.stderr = ""
 
         if kwargs:
             self.options = kwargs
@@ -92,7 +93,7 @@ class Nco(object):
             if isinstance(inputs, six.string_types):
                 inline_cmd.append(inputs)
             else:
-                #we assume it's either a list, a tuple or any iterable.
+                # we assume it's either a list, a tuple or any iterable.
                 inline_cmd.extend(inputs)
 
         if self.debug:
@@ -146,20 +147,21 @@ class Nco(object):
             returnMaArray = kwargs.pop("returnMaArray", False)
             operatorPrintsOut = kwargs.pop("operatorPrintsOut", False)
 
-            #build the nco command
-            #1. the nco operator
+            # build the nco command
+            # 1. the nco operator
             cmd = [os.path.join(self.NCOpath, method_name)]
 
             if options:
                 for o in options:
                     if isinstance(o, six.string_types):
                         cmd.extend(o.split())
-                    # only a custom object will have this method - eg the class atted
+                    # only a custom object will have this method - eg the
+                    # class atted
                     elif hasattr(o, 'prn_option'):
                         cmd.extend(o.prn_option().split())
                     else:
-                        #we assume it's either a list, a tuple or any iterable.
-                        cmd.extend(o)  
+                        # we assume it's either a list, a tuple or any iterable
+                        cmd.extend(o)
 
             if debug:
                 if type(debug) == bool:
@@ -180,7 +182,7 @@ class Nco(object):
             else:
                 force = False
 
-            #2b. all other keyword args become options
+            # 2b. all other keyword args become options
             if kwargs:
                 for key, val in list(kwargs.items()):
                     if val and type(val) == bool:
@@ -192,10 +194,10 @@ class Nco(object):
                             isinstance(val, float):
                         cmd.append("--{0}={1}".format(key, val))
                     else:
-                        #we assume it's either a list, a tuple or any iterable.
+                        # we assume it's either a list, a tuple or any iterable
                         cmd.append("--{0}={1}".format(key, ",".join(val)))
 
-            #2c. Global options come in
+            # 2c. Global options come in
             if self.options:
                 for key, val in list(self.options.items()):
                     if val and type(val) == bool:
@@ -203,7 +205,7 @@ class Nco(object):
                     elif isinstance(val, six.string_types):
                         cmd.append("--{0}={1}".format(key, val))
                     else:
-                        #we assume it's either a list, a tuple or any iterable.
+                        # we assume it's either a list, a tuple or any iterable
                         cmd.append("--{0}={1}".format(key, ",".join(val)))
 
             # 3.  Add in overwrite if necessary
@@ -213,17 +215,16 @@ class Nco(object):
             # Check if operator appends
             operatorAppends = False
             for piece in cmd:
-                 if piece in self.AppendOperatorsPattern:
-                     operatorAppends = True
-                     
+                if piece in self.AppendOperatorsPattern:
+                    operatorAppends = True
+
             # If operator appends and NCO version >= 4.3.7, remove -H -M -m
             # and their ancillaries from outputOperatorsPattern
             if operatorAppends and method_name == 'ncks':
-                 nco_version = self.version()
-                 if LooseVersion(nco_version) >= LooseVersion('4.3.7'):
-                     self.outputOperatorsPattern = ['ncdump', '-r', '--revision', '--vrs', '--version']
- 
-
+                nco_version = self.version()
+                if LooseVersion(nco_version) >= LooseVersion('4.3.7'):
+                    self.outputOperatorsPattern = [
+                        'ncdump', '-r', '--revision', '--vrs', '--version']
 
             # Check if operator prints out
             for piece in cmd:
@@ -233,9 +234,9 @@ class Nco(object):
 
             if operatorPrintsOut:
                 retvals = self.call(cmd, inputs=input)
-                self.returncode=retvals["returncode"]
-                self.stdout=retvals["stdout"]
-                self.stderr=retvals["stderr"]
+                self.returncode = retvals["returncode"]
+                self.stdout = retvals["stdout"]
+                self.stderr = retvals["stderr"]
                 if not self.hasError(method_name, input, cmd, retvals):
                     return retvals["stdout"]
                     # parsing can be done by 3rd party
@@ -258,14 +259,11 @@ class Nco(object):
                                             {1}'.format(output,
                                                         type(output)))
                         cmd.extend("--output={0}".format(output))
-                # else:
-                #     output = self.tempfile.path()
-                #     cmd.append("--output={0}".format(output))
 
                 retvals = self.call(cmd, inputs=input, environment=environment)
-                self.returncode=retvals["returncode"]
-                self.stdout=retvals["stdout"]
-                self.stderr=retvals["stderr"]
+                self.returncode = retvals["returncode"]
+                self.stdout = retvals["stdout"]
+                self.stderr = retvals["stderr"]
                 if self.hasError(method_name, input, cmd, retvals):
                     if self.returnNoneOnError:
                         return None
@@ -287,7 +285,7 @@ class Nco(object):
            (method_name in self.operators):
             if self.debug:
                 print("Found method: {0}".format(method_name))
-            #cache the method for later
+            # cache the method for later
             setattr(self.__class__, method_name, get)
             return get.__get__(self)
         else:
@@ -348,9 +346,9 @@ class Nco(object):
     def getNco(self):
         return self.NCOpath
 
-    #==================================================================
+    # ==================================================================
     # Addional operators:
-    #------------------------------------------------------------------
+    # ------------------------------------------------------------------
     def module_version(self):
         return '0.0.0'
 
@@ -377,7 +375,7 @@ class Nco(object):
             self.loadCdf()
 
         if self.cdfMod == "scipy":
-            #making it compatible to older scipy versions
+            # making it compatible to older scipy versions
             fileObj = self.cdf.netcdf_file(infile, mode='r')
         elif self.cdfMod == "netcdf4":
             fileObj = self.cdf.Dataset(infile)
@@ -393,7 +391,7 @@ class Nco(object):
             self.loadCdf()
 
         if self.cdfMod == "scipy":
-            #making it compatible to older scipy versions
+            # making it compatible to older scipy versions
             print("Use scipy")
             fileObj = self.cdf.netcdf_file(infile, mode='r+')
         elif self.cdfMod == "netcdf4":
@@ -419,7 +417,7 @@ class Nco(object):
         """Create a masked array based on cdf's FillValue"""
         fileObj = self.readCdf(infile)
 
-        #.data is not backwards compatible to old scipy versions, [:] is
+        # .data is not backwards compatible to old scipy versions, [:] is
         data = fileObj.variables[varname][:]
 
         # load numpy if available
@@ -433,7 +431,7 @@ class Nco(object):
             fill_val = fileObj.variables[varname]._FillValue
             retval = np.ma.masked_where(data == fill_val, data)
         else:
-            #generate dummy mask which is always valid
+            # generate dummy mask which is always valid
             retval = np.ma.array(data)
 
         return retval

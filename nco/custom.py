@@ -10,7 +10,6 @@ Rename - wrapper for -a, -v, -d, -g switches in ncrename
 """
 
 import os
-import sys
 import numpy as np
 
 DEBUG = 1
@@ -115,7 +114,8 @@ class Atted(object):
      att_typ = f,d,l/i,s,c,b,ub,us,u,ll,ull,sng
      """
 
-    def __init__(self, mode='overwrite', att_name="", var_name="", value=None, stype=None, **kwargs):
+    def __init__(self, mode='overwrite', att_name="", var_name="", value=None,
+                 stype=None, **kwargs):
         mode = kwargs.pop('mode', mode)
         att_name = kwargs.pop('att_name', att_name)
         var_name = kwargs.pop('var_name', var_name)
@@ -143,14 +143,15 @@ class Atted(object):
         if self.mode == "d":
             return
 
-        # deal with string quirk 
-        # if user specifies type 'string' or 'sng' with a single character string 
-        # the the output type should be 'sng and NOT 'c'. To do this we put the single string
-        # inside a list the the prnOptions() method treats it as it would a list of strings
+        # deal with string quirk
+        # if user specifies type 'string' or 'sng' with a single character
+        # string the the output type should be 'sng and NOT 'c'. To do this we
+        # put the single string inside a list the the prnOptions() method
+        # treats it as it would a list of strings
         if isinstance(value, str) and stype in ['string', 'sng']:
             value = [value]
 
-        # see if value is iterable   
+        # see if value is iterable
         try:
             if isinstance(value, str):
                 raise TypeError("str is not iterable (for our purposes")
@@ -166,7 +167,8 @@ class Atted(object):
             try:
                 np_type = NP_TYPESNP[stype]
             except:
-                raise KeyError('specified Type "{0}" not found.\nValid values {1}\n'.format(stype, NP_TYPES.keys()))
+                raise KeyError('specified Type "{0}" not found.\nValid '
+                               'values {1}\n'.format(stype, NP_TYPES.keys()))
         # set default types
         else:
             if input_type is int:
@@ -178,11 +180,12 @@ class Atted(object):
             # check the input type
             else:
                 try:
-                    x = NP_TYPES[str(np.dtype(input_type))]
+                    NP_TYPES[str(np.dtype(input_type))]
                     np_type = input_type
-                except:
-                    raise KeyError('The type of value "{0}" is NOT valid\nValid values {1}\n'.
-                                   format(input_type, NP_TYPES.keys()))
+                except KeyError:
+                    raise KeyError(
+                        'The type of value "{0}" is NOT valid\nValid '
+                        'values {1}\n'.format(input_type, NP_TYPES.keys()))
 
         if biterable:
             if np_type is str:
@@ -194,7 +197,8 @@ class Atted(object):
                 # create array of 'fixed' length strings
                 np_value = np.array(sList, 'S{0}'.format(lenMax))
             else:
-                np_value = np.fromiter(value, np_type)  # create array from iterable all in one go !!
+                # create array from iterable all in one go !!
+                np_value = np.fromiter(value, np_type)
         else:
             np_value = np.dtype(np_type).type(value)
 
@@ -203,20 +207,21 @@ class Atted(object):
             self.np_value = np_value
 
     def __str__(self):
-        return ('mode="{0}" att_name="{1}" var_name="{2} value="{3}" type="{4}"\n'.
-                format(self.mode, self.att_name, self.var_name, self.np_value, self.np_type))
+        return ('mode="{0}" att_name="{1}" var_name="{2} value="{3}" '
+                'type="{4}"\n'.format(self.mode, self.att_name, self.var_name,
+                                      self.np_value, self.np_type))
 
     def prn_option(self):
 
         # modeChar=VALID_MODES[self.mode]
-        # deal with delete - nb doesnt need any data 
+        # deal with delete - nb doesnt need any data
         if self.mode == 'd':
             return ('-a "{0}","{1}",{2},,'.
                     format(self.att_name, self.var_name, self.mode))
 
         bList = isinstance(self.np_value, (list, np.ndarray))
 
-        # deal with string quirks here 
+        # deal with string quirks here
         # if isinstance(self.np_type, str):
         if self.np_type is str:
             if bList:
@@ -239,8 +244,11 @@ class Atted(object):
 
         strvalue = ",".join(strArray)
 
-        return ('-a "{0}","{1}",{2},{3},{4}'.
-                format(self.att_name, self.var_name, self.mode, type_char, strvalue))
+        return '-a "{0}","{1}",{2},{3},{4}'.format(self.att_name,
+                                                   self.var_name,
+                                                   self.mode,
+                                                   type_char,
+                                                   strvalue)
 
 
 class Limit(object):
@@ -309,8 +317,10 @@ class Limit(object):
 
 class LimitSingle(Limit):
     """
-    limitsingle is where user request a single limit and not a range - on the command line this looks like:
-    eg "-d lon,10"  and NOT  "-d lon,10," (the comma signfies a range to default end)
+    limitsingle is where user request a single limit and not a range - on the
+    command line this looks like:
+    eg "-d lon,10"  and NOT  "-d lon,10,"
+    (the comma signfies a range to default end)
     """
 
     def __init__(self, dmn_name="", srt="", end="", srd="", drn="", **kwargs):
@@ -337,7 +347,7 @@ class Rename(object):
          rename variable  -v old_var_nm, new_var_nm
          rename dimension -d old_nm_nm,  new_dmn_nm
          rename groupg    -g old_grp_nm, new_grp_nm
-    
+
       rtype specifies the object to rename -
       rdict: a user defined dictionary - mapping old_nm _>new_nm
     """
@@ -363,66 +373,3 @@ class Rename(object):
 
         sout = " ".join(lout)
         return sout
-
-    ################# myTest ################################
-
-
-def mytest():
-    AttedList = [
-        Atted(mode="overwrite", att_name="units", var_name="temperature", value="Kelvin"),
-        Atted(mode="overwrite", att_name="min", var_name="temperature", value=-127, stype='byte'),
-        Atted(mode="overwrite", att_name="max", var_name="temperature", value=127, stype='int16'),
-        Atted(mode="modify", att_name="min-max", var_name="pressure", value=[100, 10000], stype='int32'),
-        Atted(mode="create", att_name="array", var_name="time_bands", value=range(1, 10, 2), stype='d'),
-        Atted(mode="append", att_name="mean", var_name="time_bands", value=3.14159826253),  # default to double
-        Atted(mode="append", att_name="mean_float", var_name="time_bands", value=3.14159826253, stype='float'),
-        # d convert type to float
-        Atted(mode="append", att_name="mean_sng", var_name="time_bands", value=3.14159826253, stype='char'),
-        Atted(mode="nappend", att_name="units", var_name="height", value="height in mm", stype='string'),
-        Atted(mode="create", att_name="long_name", var_name="height", value="height in feet"),
-        Atted(mode="nappend", att_name="units", var_name="blob", value=[1000000., 2.], stype='d')
-    ]
-
-    # regular function args
-    AttedList += [
-        Atted("append", "long_name", "temperature", ("mean", "sea", "level", "temperature")),
-        Atted("delete", "short_name", "temp"),
-        Atted("delete", "long_name", "relative_humidity")
-    ]
-
-    ar = ("mean", "sea", "level", "temperature", 3.1459, 2.0)
-    val = np.dtype(np.complex).type(123456.0)
-    val2 = np.dtype(np.bool).type(False)
-
-    # val=10.0
-
-    AttedList += [
-        Atted("append", "long_name", "temperature", ar),
-        Atted(mode="delete", att_name=".*"),
-        Atted(mode="append", att_name="array", var_name="time", value=val, stype='ll'),
-        Atted(mode="append", att_name="bool", var_name="time", value=val2, stype='b'),
-        Atted("nappend", "long", "random", 2 ** 33, stype='ull')
-    ]
-
-    for a in AttedList:
-        print(a.prn_option())
-
-    LimitList = [Limit("lat", 0.0, 88.1),
-                 Limit("time", 0, 10, 3),
-                 Limit("time", 1.0, 2e9, 3),
-                 Limit(dmn_name="three", srt=10, end=30, srd=4, drn=2),
-                 Limit(dmn_name="three", srd=4),
-                 Limit(dmn_name="three", drn=3),
-                 LimitSingle("three", 20.0)
-                 ]
-
-    for l in LimitList:
-        print(l.prn_option())
-
-    tstrename = dict({'lon': 'longitude', 'lat': 'latitude', 'lev': 'level', 'dog': 'cat'})
-    myrename = Rename("g", tstrename)
-    print(myrename.prn_option())
-
-
-################# main ######################################################
-mytest()

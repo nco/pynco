@@ -21,7 +21,7 @@ purposes too.
 
     ### Conda Installation:
 
-         conda install -c https://conda.anaconda.org/ioos pynco
+         conda install -c conda-forge pynco
 
 ### Requirements
 

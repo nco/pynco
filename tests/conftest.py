@@ -65,8 +65,8 @@ def foo_nc(random_field):
     filename = os.path.join(tempdir, 'foo.nc')
     f = netCDF4.Dataset(filename, 'w', format='NETCDF3_CLASSIC')
     shape = random_field.shape
-    dim0 = f.createDimension('dim0', shape[0])
-    dim1 = f.createDimension('dim1', shape[1])
+    f.createDimension('dim0', shape[0])
+    f.createDimension('dim1', shape[1])
     time = f.createDimension('time', None)
     var = f.createVariable('random', 'f8', ('time', 'dim0', 'dim1',))
     time = f.createVariable('time', 'f8', ('time'))
@@ -84,8 +84,8 @@ def bar_nc(random_field):
     filename = os.path.join(tempdir, 'bar.nc')
     f = netCDF4.Dataset(filename, 'w')
     shape = random_field.shape
-    dim0 = f.createDimension('dim0', shape[0])
-    dim1 = f.createDimension('dim1', shape[1])
+    f.createDimension('dim0', shape[0])
+    f.createDimension('dim1', shape[1])
     time = f.createDimension('time', None)
     var = f.createVariable('random', 'f8', ('time', 'dim0', 'dim1',))
     time = f.createVariable('time', 'f8', ('time'))
@@ -104,8 +104,8 @@ def bar_mask_nc(random_masked_field):
     f = netCDF4.Dataset(filename, 'w', format='NETCDF3_CLASSIC')
 
     shape = random_masked_field.shape
-    dim0 = f.createDimension('dim0', shape[1])
-    dim1 = f.createDimension('dim1', shape[2])
+    f.createDimension('dim0', shape[1])
+    f.createDimension('dim1', shape[2])
     time = f.createDimension('time', 1)
     var = f.createVariable('random', 'f8', ('time', 'dim0', 'dim1',))
     time = f.createVariable('time', 'f8', ('time'))
@@ -126,8 +126,8 @@ def monthly_filelist(random_field, monthlydatetimelist, tempsrcdir):
         filename = os.path.join(tempdir, filename)
         f = netCDF4.Dataset(filename, 'w')
         shape = random_field.shape
-        dim0 = f.createDimension('dim0', shape[0])
-        dim1 = f.createDimension('dim1', shape[1])
+        f.createDimension('dim0', shape[0])
+        f.createDimension('dim1', shape[1])
         time = f.createDimension('time', 1)
         var = f.createVariable('random', 'f8', ('time', 'dim0', 'dim1',))
         time = f.createVariable('time', 'f8', ('time'))
@@ -152,8 +152,8 @@ def testfiles8589(random_field, tempsrcdir):
         filename = os.path.join(tempsrcdir, filename)
         f = netCDF4.Dataset(filename, 'w')
         shape = random_field.shape
-        dim0 = f.createDimension('dim0', shape[0])
-        dim1 = f.createDimension('dim1', shape[1])
+        f.createDimension('dim0', shape[0])
+        f.createDimension('dim1', shape[1])
         time = f.createDimension('time', 1)
         var = f.createVariable('random', 'f8', ('time', 'dim0', 'dim1',))
         time = f.createVariable('time', 'f8', ('time'))
@@ -177,8 +177,8 @@ def testfile85(random_field, tempsrcdir):
     filename = os.path.join(tempdir, "85.nc")
     f = netCDF4.Dataset(filename, 'w')
     shape = random_field.shape
-    dim0 = f.createDimension('dim0', shape[0])
-    dim1 = f.createDimension('dim1', shape[1])
+    f.createDimension('dim0', shape[0])
+    f.createDimension('dim1', shape[1])
     time = f.createDimension('time', len(dates))
     var = f.createVariable('random', 'f8', ('time', 'dim0', 'dim1',))
     time = f.createVariable('time', 'f8', ('time'))
@@ -199,8 +199,8 @@ def testfileglobal(tempsrcdir):
     f = netCDF4.Dataset(filename, 'w')
     random_field = np.random.rand(1, 180, 360)  # 1degree resolution
     shape = random_field.shape
-    dim0 = f.createDimension('lat', shape[1])
-    dim1 = f.createDimension('lon', shape[2])
+    f.createDimension('lat', shape[1])
+    f.createDimension('lon', shape[2])
     time = f.createDimension('time', len(dates))
     var = f.createVariable('random', 'f8', ('time', 'lat', 'lon',))
     lon = f.createVariable('lon', 'f8', ('lon',))
