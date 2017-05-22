@@ -360,6 +360,8 @@ class Nco(object):
                                 stdout=subprocess.PIPE)
         ret = proc.communicate()
         ncra_help = ret[1]
+        if isinstance(ncra_help, bytes):
+            ncra_help = ncra_help.decode('utf-8')
         match = re.search('NCO netCDF Operators version (\d.*) ',
                           ncra_help)
         # some versions write version information in quotation marks
