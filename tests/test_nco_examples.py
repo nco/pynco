@@ -34,6 +34,8 @@ def test_ncks_hdf2nc(hdf_file):
     ncks        fl.hdf fl.nc # Convert HDF4->netCDF4 (NCO 4.4.0+, netCDF4.3.1+)
     ncks --hdf4 fl.hdf fl.nc # Convert HDF4->netCDF4 (NCO 4.3.7-4.3.9)
     """
+    if hdf_file is None:
+        pytest.skip('Skipped because h5py is not installed')
     nco = Nco(debug=True)
     nco.ncks(input=hdf_file, output='foo.nc')
     nco.ncks(input=hdf_file, output='foo.nc', hdf4=True)
@@ -51,6 +53,8 @@ def test_ncks_hdf2nc3(hdf_file):
     ncks --hdf4 -3 fl.hdf fl.nc # HDF4->netCDF3 (netCDF 4.3.0-)
     ncks --hdf4 -7 fl.hdf fl.nc # HDF4->netCDF4 classic (netCDF 4.3.0-)
     """
+    if hdf_file is None:
+        pytest.skip('Skipped because h5py is not installed')
     nco = Nco(debug=True)
     nco.ncks(input=hdf_file, output='foo.nc', options='-3')
     nco.ncks(input=hdf_file, output='foo.nc', options='-7 -L 1')
@@ -156,11 +160,13 @@ def test_determining_file_format(foo3c, foo364, foo4c, hdf_file):
     nco.ncks(input=foo3c, options=['-M'])
     nco.ncks(input=foo364, options=['-M'])
     nco.ncks(input=foo4c, options=['-M'])
-    assert os.path.isfile(hdf_file)
-    nco.ncks(input=hdf_file, options=['-D 2 -M'])
+    nco.ncks(input=foo4c, options=['-D 2 -M'])
+
+    if hdf_file is not None:
+        assert os.path.isfile(hdf_file)
+        nco.ncks(input=hdf_file, options=['-D 2 -M'])
     # nco.ncks(input='http://thredds-test.ucar.edu/thredds/dodsC/testdods/in.nc',
     #          options='-D 2 -M') # does not work from command line either
-    nco.ncks(input=foo4c, options=['-D 2 -M'])
 
 
 def test_file_conversion(foo3c, foo4c):

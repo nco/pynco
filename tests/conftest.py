@@ -4,7 +4,6 @@ import os
 import pytest
 import tempfile
 import numpy as np
-# import h5py
 import netCDF4
 import datetime
 from dateutil import relativedelta
@@ -47,15 +46,19 @@ def random_masked_field(mask4tests):
     return field
 
 
-# @pytest.fixture(scope="module")
-# def hdf_file(random_field, tempsrcdir):
-#     filename = os.path.join(tempsrcdir, 'testhdf.hdf5')
-#     f = h5py.File(filename, 'w')
-#     shape = random_field.shape
-#     dset = f.create_dataset("random_field", shape, dtype='f')
-#     dset[:, :] = random_field
-#     f.close()
-#     return filename
+@pytest.fixture(scope="module")
+def hdf_file(random_field, tempsrcdir):
+    try:
+        import h5py
+        filename = os.path.join(tempsrcdir, 'testhdf.hdf5')
+        f = h5py.File(filename, 'w')
+        shape = random_field.shape
+        dset = f.create_dataset("random_field", shape, dtype='f')
+        dset[:, :] = random_field
+        f.close()
+        return filename
+    except (ImportError, AttributeError):
+        return None
 
 
 @pytest.fixture(scope="module")
