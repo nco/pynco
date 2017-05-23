@@ -36,7 +36,7 @@ def random_field():
 
 @pytest.fixture(scope="module")
 def mask4tests():
-    return np.random.random_integers(0, 1, (1, 5, 5))
+    return np.random.randint(1, size=(1, 5, 5))
 
 
 @pytest.fixture(scope="module")
