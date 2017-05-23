@@ -59,7 +59,7 @@ Now any NCO command (i.e. ncks, ncra, ...) can be called as a method of `nco`.
     - `returnCdf` - return a netCDF file handle, bool (default=False)
     - `returnArray` - return a numpy array of variable name, str (default='')
     - `returnMaArray` - return a numpy masked array of variable name, str (default='')
-    - `options` - a string of NCO input options, for example options='-7 -L 1' (default='')
+    - `options` - a list of NCO input options, for example `options=['-7', '-L 1']` (default=[])
     - `Atted`   - a wrapper object to be used for ncatted. Atted objects can be included in the options list
     -  `Limit`  - a wrapper object for the hyperslab ( -d ) command line option
     -  `Rename` - a wrapper object for the -d, -a, -v, -g command line options in ncrename

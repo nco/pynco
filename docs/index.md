@@ -60,7 +60,7 @@ Now any NCO command (i.e. `ncks`, `ncra`, ...) can be called as a method of `nco
     - `returnCdf` - return a netCDF file handle, bool (default=False)
     - `returnArray` - return a numpy array of variable name, str (default='')
     - `returnMaArray` - return a numpy masked array of variable name, str (default='')
-    - `options` - a string of NCO input options, for example options='-7 -L 1' (default='')
+    - `options` - a string of NCO input options, for example `options=['-7', '-L 1']` (default=[])
     - `**kwargs` - any kwarg will be passed as a key, value pair to the nco command `--{key}={value}`.  This allows the user to pass any number of long name commands list in the nco help pages.
 
 ### Examples
