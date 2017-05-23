@@ -157,12 +157,12 @@ def testfiles8589(random_field, tempsrcdir):
         shape = random_field.shape
         f.createDimension('dim0', shape[0])
         f.createDimension('dim1', shape[1])
-        time = f.createDimension('time', 1)
+        f.createDimension('time')
         var = f.createVariable('random', 'f8', ('time', 'dim0', 'dim1',))
         time = f.createVariable('time', 'f8', ('time'))
         time.units = stdtimeunits
         time.calendar = noleapcalendar
-        var[:, :, :] = random_field
+        var[0, :, :] = random_field
         time[:] = netCDF4.date2num(date, stdtimeunits,
                                    calendar=noleapcalendar)
         f.close()

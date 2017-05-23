@@ -135,13 +135,16 @@ def test_specifying_input_files(testfiles8589):
     ncra -p input-path 85.nc 86.nc 87.nc 88.nc 89.nc 8589.nc
     ncra -n 5,2,1 85.nc 8589.nc
     """
-    inputs = ['85.nc', '86.nc', '87.nc', '88.nc', '89.nc']
     nco = Nco(debug=True)
-    nco.ncra(input=inputs, ouptut='8589.nc')
-    nco.ncra(input='8[56789].nc', ouptut='8589.nc')
-    srcdir = os.path.split(inputs[0])
-    nco.ncra(input=inputs, ouptut='8589.nc', path=srcdir)
-    nco.ncra(input=inputs, ouptut='8589.nc', nintap='5,2,1')
+    nco.ncra(input=testfiles8589, output='8589.nc')
+    nco.ncra(input=testfiles8589, output='8589.nc', nintap='5,2,1')
+
+    srcdir = os.path.dirname(testfiles8589[0])
+    basenames = [ os.path.basename(x) for x in testfiles8589 ]
+    nco.ncra(input=basenames, output='8589.nc', path=srcdir)
+
+    regpath = os.path.join(srcdir, '8[56789].nc')
+    nco.ncra(input=regpath, output='8589.nc')
 
 
 def test_determining_file_format(foo3c, foo364, foo4c, hdf_file):
