@@ -197,7 +197,7 @@ def test_file_conversion(foo3c, foo4c):
     nco.ncks(input=foo4c, output='foo_3c.nc', options=['-3'])
     nco.ncks(input=foo4c, output='foo_3c.nc', options=['--3'])
     nco.ncks(input=foo3c, output='foo_364c.nc', options=['-6'])
-    nco.ncks(input=foo3c, output='foo_364c.nc', options=['--64'])
+    nco.ncks(input=foo3c, output='foo_364c.nc', options=['--64bit_offset'])
     nco.ncks(input=foo3c, output='foo_4.nc', options=['-4'])
     nco.ncks(input=foo3c, output='foo_4.nc', options=['--4'])
     nco.ncks(input=foo3c, output='foo_4c.nc', options=['-7'])

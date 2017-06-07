@@ -86,10 +86,10 @@ def test_use_list_inputs(foo_nc, bar_nc):
 def test_use_list_options(foo_nc):
     nco = Nco(debug=True)
     options = []
-    options.extend(['-a', 'units,time,o,c,days since 1999-01-01'])
+    options.extend(['-a', 'units,time,o,c,"days since 1999-01-01"'])
     options.extend(['-a', 'long_name,time,o,c,time'])
     options.extend(['-a', 'calendar,time,o,c,noleap'])
-    nco.ncrcat(input=foo_nc, output='out.nc', options=options)
+    nco.ncatted(input=foo_nc, output='out.nc', options=options)
 
 
 @pytest.mark.usefixtures("foo_nc", "bar_nc")
