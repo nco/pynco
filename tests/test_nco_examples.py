@@ -34,6 +34,8 @@ def test_ncks_hdf2nc(hdf_file):
     ncks        fl.hdf fl.nc # Convert HDF4->netCDF4 (NCO 4.4.0+, netCDF4.3.1+)
     ncks --hdf4 fl.hdf fl.nc # Convert HDF4->netCDF4 (NCO 4.3.7-4.3.9)
     """
+    if hdf_file is None:
+        pytest.skip('Skipped because h5py is not installed')
     nco = Nco(debug=True)
     nco.ncks(input=hdf_file, output='foo.nc')
     nco.ncks(input=hdf_file, output='foo.nc', hdf4=True)
@@ -51,11 +53,13 @@ def test_ncks_hdf2nc3(hdf_file):
     ncks --hdf4 -3 fl.hdf fl.nc # HDF4->netCDF3 (netCDF 4.3.0-)
     ncks --hdf4 -7 fl.hdf fl.nc # HDF4->netCDF4 classic (netCDF 4.3.0-)
     """
+    if hdf_file is None:
+        pytest.skip('Skipped because h5py is not installed')
     nco = Nco(debug=True)
-    nco.ncks(input=hdf_file, output='foo.nc', options='-3')
-    nco.ncks(input=hdf_file, output='foo.nc', options='-7 -L 1')
-    nco.ncks(input=hdf_file, output='foo.nc', options='-3', hdf4=True)
-    nco.ncks(input=hdf_file, output='foo.nc', options='-7', hdf4=True)
+    nco.ncks(input=hdf_file, output='foo.nc', options=['-3'])
+    nco.ncks(input=hdf_file, output='foo.nc', options=['-7 -L 1'])
+    nco.ncks(input=hdf_file, output='foo.nc', options=['-3'], hdf4=True)
+    nco.ncks(input=hdf_file, output='foo.nc', options=['-7'], hdf4=True)
 
 
 def test_temp_output_files(foo_nc):
@@ -116,9 +120,9 @@ def test_command_line_options(foo_nc):
     ncks --dbg_lvl 3 in.nc # Long option, alternate form
     """
     nco = Nco(debug=True)
-    nco.ncks(input=foo_nc, options='-D 3')
-    nco.ncks(input=foo_nc, options='--dbg_lvl=3')
-    nco.ncks(input=foo_nc, options='--dbg_lvl 3')
+    nco.ncks(input=foo_nc, options=['-D 3'])
+    nco.ncks(input=foo_nc, options=['--dbg_lvl=3'])
+    nco.ncks(input=foo_nc, options=['--dbg_lvl 3'])
     nco.ncks(input=foo_nc, dbg_lvl=3)
 
 
@@ -131,13 +135,16 @@ def test_specifying_input_files(testfiles8589):
     ncra -p input-path 85.nc 86.nc 87.nc 88.nc 89.nc 8589.nc
     ncra -n 5,2,1 85.nc 8589.nc
     """
-    inputs = ['85.nc', '86.nc', '87.nc', '88.nc', '89.nc']
     nco = Nco(debug=True)
-    nco.ncra(input=inputs, ouptut='8589.nc')
-    nco.ncra(input='8[56789].nc', ouptut='8589.nc')
-    srcdir = os.path.split(inputs[0])
-    nco.ncra(input=inputs, ouptut='8589.nc', path=srcdir)
-    nco.ncra(input=inputs, ouptut='8589.nc', nintap='5,2,1')
+    nco.ncra(input=testfiles8589, output='8589.nc')
+    nco.ncra(input=testfiles8589, output='8589.nc', nintap='5,2,1')
+
+    srcdir = os.path.dirname(testfiles8589[0])
+    basenames = [ os.path.basename(x) for x in testfiles8589 ]
+    nco.ncra(input=basenames, output='8589.nc', path=srcdir)
+
+    regpath = os.path.join(srcdir, '8[56789].nc')
+    nco.ncra(input=regpath, output='8589.nc')
 
 
 def test_determining_file_format(foo3c, foo364, foo4c, hdf_file):
@@ -156,11 +163,13 @@ def test_determining_file_format(foo3c, foo364, foo4c, hdf_file):
     nco.ncks(input=foo3c, options=['-M'])
     nco.ncks(input=foo364, options=['-M'])
     nco.ncks(input=foo4c, options=['-M'])
-    assert os.path.isfile(hdf_file)
-    nco.ncks(input=hdf_file, options=['-D 2 -M'])
-    # nco.ncks(input='http://thredds-test.ucar.edu/thredds/dodsC/testdods/in.nc',
-    #          options='-D 2 -M') # does not work from command line either
     nco.ncks(input=foo4c, options=['-D 2 -M'])
+
+    if hdf_file is not None:
+        assert os.path.isfile(hdf_file)
+        nco.ncks(input=hdf_file, options=['-D 2 -M'])
+    # nco.ncks(input='http://thredds-test.ucar.edu/thredds/dodsC/testdods/in.nc',
+    #          options=['-D 2', '-M']) # does not work from command line either
 
 
 def test_file_conversion(foo3c, foo4c):
@@ -185,14 +194,14 @@ def test_file_conversion(foo3c, foo4c):
     nco.ncks(input=foo4c, output='foo_364.nc', fl_fmt='64bit')
     nco.ncks(input=foo3c, output='foo_4c.nc', fl_fmt='netcdf4_classic')
     nco.ncks(input=foo3c, output='foo_4.nc', fl_fmt='netcdf4')
-    nco.ncks(input=foo4c, output='foo_3c.nc', options='-3')
-    nco.ncks(input=foo4c, output='foo_3c.nc', options='--3')
-    nco.ncks(input=foo3c, output='foo_364c.nc', options='-6')
-    nco.ncks(input=foo3c, output='foo_364c.nc', options='--64')
-    nco.ncks(input=foo3c, output='foo_4.nc', options='-4')
-    nco.ncks(input=foo3c, output='foo_4.nc', options='--4')
-    nco.ncks(input=foo3c, output='foo_4c.nc', options='-7')
-    nco.ncks(input=foo3c, output='foo_4c.nc', options='--7')
+    nco.ncks(input=foo4c, output='foo_3c.nc', options=['-3'])
+    nco.ncks(input=foo4c, output='foo_3c.nc', options=['--3'])
+    nco.ncks(input=foo3c, output='foo_364c.nc', options=['-6'])
+    nco.ncks(input=foo3c, output='foo_364c.nc', options=['--64bit_offset'])
+    nco.ncks(input=foo3c, output='foo_4.nc', options=['-4'])
+    nco.ncks(input=foo3c, output='foo_4.nc', options=['--4'])
+    nco.ncks(input=foo3c, output='foo_4c.nc', options=['-7'])
+    nco.ncks(input=foo3c, output='foo_4c.nc', options=['--7'])
 
 
 def test_hyperslabs(testfileglobal):
