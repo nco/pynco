@@ -4,7 +4,6 @@ import os
 import pytest
 import tempfile
 import numpy as np
-# import h5py
 import netCDF4
 import datetime
 from dateutil import relativedelta
@@ -37,7 +36,7 @@ def random_field():
 
 @pytest.fixture(scope="module")
 def mask4tests():
-    return np.random.random_integers(0, 1, (1, 5, 5))
+    return np.random.randint(1, size=(1, 5, 5))
 
 
 @pytest.fixture(scope="module")
@@ -47,15 +46,19 @@ def random_masked_field(mask4tests):
     return field
 
 
-# @pytest.fixture(scope="module")
-# def hdf_file(random_field, tempsrcdir):
-#     filename = os.path.join(tempsrcdir, 'testhdf.hdf5')
-#     f = h5py.File(filename, 'w')
-#     shape = random_field.shape
-#     dset = f.create_dataset("random_field", shape, dtype='f')
-#     dset[:, :] = random_field
-#     f.close()
-#     return filename
+@pytest.fixture(scope="module")
+def hdf_file(random_field, tempsrcdir):
+    try:
+        import h5py
+        filename = os.path.join(tempsrcdir, 'testhdf.hdf5')
+        f = h5py.File(filename, 'w')
+        shape = random_field.shape
+        dset = f.create_dataset("random_field", shape, dtype='f')
+        dset[:, :] = random_field
+        f.close()
+        return filename
+    except (ImportError, AttributeError):
+        return None
 
 
 @pytest.fixture(scope="module")
@@ -154,12 +157,12 @@ def testfiles8589(random_field, tempsrcdir):
         shape = random_field.shape
         f.createDimension('dim0', shape[0])
         f.createDimension('dim1', shape[1])
-        time = f.createDimension('time', 1)
+        f.createDimension('time')
         var = f.createVariable('random', 'f8', ('time', 'dim0', 'dim1',))
         time = f.createVariable('time', 'f8', ('time'))
         time.units = stdtimeunits
         time.calendar = noleapcalendar
-        var[:, :, :] = random_field
+        var[0, :, :] = random_field
         time[:] = netCDF4.date2num(date, stdtimeunits,
                                    calendar=noleapcalendar)
         f.close()
