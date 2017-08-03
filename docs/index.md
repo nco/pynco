@@ -108,7 +108,9 @@ temperatures = nco.ncra(input=ifile, output=tempfile.mktemp(), returnArray='T')
 
 ## Support, Issues, Bugs, ...
 
-Please use the github page for this code: https://github.com/nco/pynco.
+Please use the github page to report issues/bugs/features: https://github.com/nco/pynco.
+
+For usage questions, please use [Stack Overflow](https://stackoverflow.com/questions/tagged/nco).
 
 ## License
 
@@ -118,7 +120,7 @@ Please use the github page for this code: https://github.com/nco/pynco.
 
 ## Other stuff
 
-* Author: Joe Hamman <jhamman1@uw.edu>
+* Author: [Joe Hamman](https://github.com/jhamman)
 * Requires: NCO version 4.2.x or newer, Python 2.6 or later
 * Optional: scipy or Python netCDF4
 * License:  Copyright 2015 by Joe Hamman.  Released under GPLv2 license.  See the LICENSE file included in the distribution.
