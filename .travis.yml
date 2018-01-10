@@ -6,8 +6,7 @@ python:
   - 3.6
 
 env:
-  - NCO_VERSION=4.5.5
-  - NCO_VERSION=4.6.1
+  - NCO_VERSION=4.6.9
   - NCO_VERSION=latest
 
 before_install:
