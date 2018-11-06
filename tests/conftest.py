@@ -1,16 +1,16 @@
-
-# content of conftest.py
-import os
-import pytest
-import tempfile
-import numpy as np
-import netCDF4
 import datetime
-from dateutil import relativedelta
+import os
+import tempfile
 
-stdtimeunits = 'days since 1990-01-01'
-noleapcalendar = 'noleap'
-monthlydatestrformat = 'Foo.bar.ha.%Y-%m.nc'
+from dateutil import relativedelta
+import netCDF4
+import numpy as np
+import pytest
+
+# constants
+_UNITS_STD_TIME = 'days since 1990-01-01'
+_CALENDAR_NO_LEAP = 'noleap'
+_DATESTR_FORMAT_MONTHLY = 'Foo.bar.ha.%Y-%m.nc'
 
 
 @pytest.fixture(scope="module")
@@ -66,17 +66,17 @@ def foo_nc(random_field):
     """ a simple netCDF file with a random field"""
     tempdir = tempsrcdir()
     filename = os.path.join(tempdir, 'foo.nc')
-    f = netCDF4.Dataset(filename, 'w', format='NETCDF3_CLASSIC')
+    dataset = netCDF4.Dataset(filename, 'w', format='NETCDF3_CLASSIC')
     shape = random_field.shape
-    f.createDimension('dim0', shape[0])
-    f.createDimension('dim1', shape[1])
-    time = f.createDimension('time', None)
-    var = f.createVariable('random', 'f8', ('time', 'dim0', 'dim1',))
-    time = f.createVariable('time', 'f8', ('time'))
-    time.units = stdtimeunits
+    dataset.createDimension('dim0', shape[0])
+    dataset.createDimension('dim1', shape[1])
+    dataset.createDimension('time', None)
+    var = dataset.createVariable('random', 'f8', ('time', 'dim0', 'dim1',))
+    time = dataset.createVariable('time', 'f8', ('time',))
+    time.units = _UNITS_STD_TIME
     var[0, :, :] = random_field
     time[:] = 1.0
-    f.close()
+    dataset.close()
     return filename
 
 
@@ -85,17 +85,17 @@ def bar_nc(random_field):
     """ a simple netCDF file with a random field * 2"""
     tempdir = tempsrcdir()
     filename = os.path.join(tempdir, 'bar.nc')
-    f = netCDF4.Dataset(filename, 'w')
+    dataset = netCDF4.Dataset(filename, 'w')
     shape = random_field.shape
-    f.createDimension('dim0', shape[0])
-    f.createDimension('dim1', shape[1])
-    time = f.createDimension('time', None)
-    var = f.createVariable('random', 'f8', ('time', 'dim0', 'dim1',))
-    time = f.createVariable('time', 'f8', ('time'))
-    time.units = stdtimeunits
+    dataset.createDimension('dim0', shape[0])
+    dataset.createDimension('dim1', shape[1])
+    dataset.createDimension('time', None)
+    var = dataset.createVariable('random', 'f8', ('time', 'dim0', 'dim1',))
+    time = dataset.createVariable('time', 'f8', ('time',))
+    time.units = _UNITS_STD_TIME
     var[0, :, :] = random_field*2.0
     time[:] = 2.0
-    f.close()
+    dataset.close()
     return filename
 
 
@@ -104,45 +104,45 @@ def bar_mask_nc(random_masked_field):
     """ a simple netCDF file with a random field * 2"""
     tempdir = tempsrcdir()
     filename = os.path.join(tempdir, 'bar.nc')
-    f = netCDF4.Dataset(filename, 'w', format='NETCDF3_CLASSIC')
+    dataset = netCDF4.Dataset(filename, 'w', format='NETCDF3_CLASSIC')
 
     shape = random_masked_field.shape
-    f.createDimension('dim0', shape[1])
-    f.createDimension('dim1', shape[2])
-    time = f.createDimension('time', 1)
-    var = f.createVariable('random', 'f8', ('time', 'dim0', 'dim1',))
-    time = f.createVariable('time', 'f8', ('time'))
-    time.units = stdtimeunits
+    dataset.createDimension('dim0', shape[1])
+    dataset.createDimension('dim1', shape[2])
+    dataset.createDimension('time', 1)
+    var = dataset.createVariable('random', 'f8', ('time', 'dim0', 'dim1',))
+    time = dataset.createVariable('time', 'f8', ('time',))
+    time.units = _UNITS_STD_TIME
     var[:, :, :] = random_masked_field*2.0
     time[:] = 2.0
-    f.close()
+    dataset.close()
     return filename
 
 
 @pytest.fixture(scope="module")
 def monthly_filelist(random_field, monthlydatetimelist, tempsrcdir):
     """Create a bunch of sample monthly netcdf files with real times"""
-    filelist = []
+    file_list = []
     tempdir = tempsrcdir()
     for date in monthlydatetimelist:
-        filename = date.strftime(monthlydatestrformat)
+        filename = date.strftime(_DATESTR_FORMAT_MONTHLY)
         filename = os.path.join(tempdir, filename)
-        f = netCDF4.Dataset(filename, 'w')
+        dataset = netCDF4.Dataset(filename, 'w')
         shape = random_field.shape
-        f.createDimension('dim0', shape[0])
-        f.createDimension('dim1', shape[1])
-        time = f.createDimension('time', 1)
-        var = f.createVariable('random', 'f8', ('time', 'dim0', 'dim1',))
-        time = f.createVariable('time', 'f8', ('time'))
-        time.units = stdtimeunits
-        time.calendar = noleapcalendar
+        dataset.createDimension('dim0', shape[0])
+        dataset.createDimension('dim1', shape[1])
+        dataset.createDimension('time', 1)
+        var = dataset.createVariable('random', 'f8', ('time', 'dim0', 'dim1',))
+        time = dataset.createVariable('time', 'f8', ('time',))
+        time.units = _UNITS_STD_TIME
+        time.calendar = _CALENDAR_NO_LEAP
         var[:, :, :] = random_field
-        time[:] = netCDF4.date2num(date, stdtimeunits,
-                                   calendar=noleapcalendar)
-        f.close()
+        time[:] = netCDF4.date2num(date, _UNITS_STD_TIME,
+                                   calendar=_CALENDAR_NO_LEAP)
+        dataset.close()
 
-        filelist.append(filename)
-    return filelist
+        file_list.append(filename)
+    return file_list
 
 
 @pytest.fixture(scope="module")
@@ -153,19 +153,19 @@ def testfiles8589(random_field, tempsrcdir):
         date = datetime.datetime(year, 1, 1)
         filename = date.strftime("%y.nc")
         filename = os.path.join(tempsrcdir, filename)
-        f = netCDF4.Dataset(filename, 'w')
+        dataset = netCDF4.Dataset(filename, 'w')
         shape = random_field.shape
-        f.createDimension('dim0', shape[0])
-        f.createDimension('dim1', shape[1])
-        f.createDimension('time')
-        var = f.createVariable('random', 'f8', ('time', 'dim0', 'dim1',))
-        time = f.createVariable('time', 'f8', ('time'))
-        time.units = stdtimeunits
-        time.calendar = noleapcalendar
+        dataset.createDimension('dim0', shape[0])
+        dataset.createDimension('dim1', shape[1])
+        dataset.createDimension('time')
+        var = dataset.createVariable('random', 'f8', ('time', 'dim0', 'dim1',))
+        time = dataset.createVariable('time', 'f8', ('time',))
+        time.units = _UNITS_STD_TIME
+        time.calendar = _CALENDAR_NO_LEAP
         var[0, :, :] = random_field
-        time[:] = netCDF4.date2num(date, stdtimeunits,
-                                   calendar=noleapcalendar)
-        f.close()
+        time[:] = netCDF4.date2num(date, _UNITS_STD_TIME,
+                                   calendar=_CALENDAR_NO_LEAP)
+        dataset.close()
 
         filelist.append(filename)
     return filelist
@@ -178,18 +178,18 @@ def testfile85(random_field, tempsrcdir):
              d in range(0, 365)]
     tempdir = tempsrcdir()
     filename = os.path.join(tempdir, "85.nc")
-    f = netCDF4.Dataset(filename, 'w')
+    dataset = netCDF4.Dataset(filename, 'w')
     shape = random_field.shape
-    f.createDimension('dim0', shape[0])
-    f.createDimension('dim1', shape[1])
-    time = f.createDimension('time', len(dates))
-    var = f.createVariable('random', 'f8', ('time', 'dim0', 'dim1',))
-    time = f.createVariable('time', 'f8', ('time'))
-    time.units = stdtimeunits
-    time.calendar = noleapcalendar
+    dataset.createDimension('dim0', shape[0])
+    dataset.createDimension('dim1', shape[1])
+    dataset.createDimension('time', len(dates))
+    var = dataset.createVariable('random', 'f8', ('time', 'dim0', 'dim1',))
+    time = dataset.createVariable('time', 'f8', ('time',))
+    time.units = _UNITS_STD_TIME
+    time.calendar = _CALENDAR_NO_LEAP
     var[:, :, :] = random_field
-    time[:] = netCDF4.date2num(dates, stdtimeunits, calendar=noleapcalendar)
-    f.close()
+    time[:] = netCDF4.date2num(dates, _UNITS_STD_TIME, calendar=_CALENDAR_NO_LEAP)
+    dataset.close()
     return filename
 
 
@@ -197,25 +197,24 @@ def testfile85(random_field, tempsrcdir):
 def testfileglobal(tempsrcdir):
     """Create a bunch of sample monthly netcdf files with real times"""
     dates = [datetime.datetime.now()]
-    # tempdir = tempsrcdir()
     filename = os.path.join(tempsrcdir, "global.nc")
-    f = netCDF4.Dataset(filename, 'w')
+    dataset = netCDF4.Dataset(filename, 'w')
     random_field = np.random.rand(1, 180, 360)  # 1degree resolution
     shape = random_field.shape
-    f.createDimension('lat', shape[1])
-    f.createDimension('lon', shape[2])
-    time = f.createDimension('time', len(dates))
-    var = f.createVariable('random', 'f8', ('time', 'lat', 'lon',))
-    lon = f.createVariable('lon', 'f8', ('lon',))
-    lat = f.createVariable('lat', 'f8', ('lat',))
-    time = f.createVariable('time', 'f8', ('time'))
-    time.units = stdtimeunits
-    time.calendar = noleapcalendar
+    dataset.createDimension('lat', shape[1])
+    dataset.createDimension('lon', shape[2])
+    dataset.createDimension('time', len(dates))
+    var = dataset.createVariable('random', 'f8', ('time', 'lat', 'lon',))
+    lon = dataset.createVariable('lon', 'f8', ('lon',))
+    lat = dataset.createVariable('lat', 'f8', ('lat',))
+    time = dataset.createVariable('time', 'f8', ('time',))
+    time.units = _UNITS_STD_TIME
+    time.calendar = _CALENDAR_NO_LEAP
     var[:, :, :] = random_field
-    time[:] = netCDF4.date2num(dates, stdtimeunits, calendar=noleapcalendar)
+    time[:] = netCDF4.date2num(dates, _UNITS_STD_TIME, calendar=_CALENDAR_NO_LEAP)
     lat[:] = np.linspace(-90., 90., shape[1])
     lon[:] = np.linspace(-180., 180, shape[2])
-    f.close()
+    dataset.close()
     return filename
 
 
@@ -229,8 +228,8 @@ def monthlydatetimelist():
 @pytest.fixture(scope="module")
 def foo3c(tempsrcdir):
     filename = os.path.join(tempsrcdir, 'foo_3c.nc')
-    f = netCDF4.Dataset(filename, 'w', format='NETCDF3_CLASSIC')
-    f.close()
+    dataset = netCDF4.Dataset(filename, 'w', format='NETCDF3_CLASSIC')
+    dataset.close()
     return filename
 
 

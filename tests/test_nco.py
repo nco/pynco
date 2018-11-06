@@ -21,11 +21,13 @@ License:
     51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 """
 import os
-from nco import NCOException, Nco, which
+
 import numpy as np
 import netCDF4
-import scipy
+import scipy.io.netcdf
 import pytest
+
+from nco import NCOException, Nco, which
 from nco.custom import Atted, Limit, LimitSingle, Rename
 
 
@@ -33,18 +35,12 @@ ops = ['ncap2', 'ncatted', 'ncbo', 'nces', 'ncecat', 'ncflint', 'ncks',
        'ncpdq', 'ncra', 'ncrcat', 'ncrename', 'ncwa', 'ncdump']
 
 
-def rm(files):
-    for f in files:
-        if os.path.exists(f):
-            os.system("rm " + f)
-
-
 def test_nco_present():
     ncopath = which('ncks')
     assert os.path.isfile(ncopath)
 
 
-def testDbg():
+def test_debug():
     nco = Nco()
     assert nco.debug == 0
     nco = Nco(debug=True)
@@ -52,7 +48,7 @@ def testDbg():
     nco.debug = False
 
 
-def testOps():
+def test_ops():
     nco = Nco()
     for op in ops:
         assert op in nco.operators
@@ -63,13 +59,13 @@ def test_mod_version():
     assert '0.0.0' == nco.module_version
 
 
-def test_getOperators():
+def test_get_operators():
     nco = Nco()
     for op in ops:
         assert op in dir(nco)
 
 
-def test_listAllOperators():
+def test_list_all_operators():
     nco = Nco()
     operators = nco.operators
     operators.sort()
@@ -120,7 +116,7 @@ def test_ncea_mult_files(foo_nc, bar_nc):
     nco.ncea(input=infiles, output='out.nc')
 
 
-def test_errorException():
+def test_error_exception():
     nco = Nco()
     assert hasattr(nco, 'nonExistingMethod') is False
     with pytest.raises(NCOException):
@@ -128,19 +124,19 @@ def test_errorException():
 
 
 @pytest.mark.usefixtures("foo_nc")
-def test_returnArray(foo_nc):
+def test_return_array(foo_nc):
     nco = Nco(cdfMod='netcdf4')
     random1 = nco.ncea(input=foo_nc, output="tmp.nc", returnCdf=True,
                        options=['-O']).variables['random'][:]
-    assert type(random1) == np.ndarray
+    assert isinstance(random1, np.ndarray)
     random2 = nco.ncea(input=foo_nc, output="tmp.nc", returnArray='random',
                        options=['-O'])
-    assert type(random2) == np.ndarray
+    assert isinstance(random2, np.ndarray)
     np.testing.assert_equal(random1, random2)
 
 
 @pytest.mark.usefixtures("bar_mask_nc", "random_masked_field")
-def test_returnMaArray(bar_mask_nc, random_masked_field):
+def test_return_ma_array(bar_mask_nc, random_masked_field):
     nco = Nco()
     field = nco.ncea(input=bar_mask_nc, output="tmp.nc",
                      returnMaArray='random', options=['-O'])
@@ -148,26 +144,26 @@ def test_returnMaArray(bar_mask_nc, random_masked_field):
 
 
 @pytest.mark.usefixtures("foo_nc")
-def test_returnCdf(foo_nc):
+def test_return_cdf(foo_nc):
     nco = Nco(cdfMod='scipy')
-    testCdf = nco.ncea(input=foo_nc, output="tmp.nc", returnCdf=True,
-                       options=['-O'])
-    assert type(testCdf) == scipy.io.netcdf.netcdf_file
+    test_cdf = nco.ncea(input=foo_nc, output="tmp.nc", returnCdf=True,
+                        options=['-O'])
+    assert type(test_cdf) == scipy.io.netcdf.netcdf_file
     expected_vars = ['time', 'random']
     for var in expected_vars:
-        assert var in list(testCdf.variables.keys())
+        assert var in list(test_cdf.variables.keys())
 
     nco = Nco(cdfMod='netcdf4')
-    testCdf = nco.ncea(input=foo_nc, output="tmp.nc", returnCdf=True,
-                       options=['-O'])
-    assert type(testCdf) == netCDF4.Dataset
+    test_cdf = nco.ncea(input=foo_nc, output="tmp.nc", returnCdf=True,
+                        options=['-O'])
+    assert type(test_cdf) == netCDF4.Dataset
     for var in expected_vars:
-        assert var in list(testCdf.variables.keys())
+        assert var in list(test_cdf.variables.keys())
 
 
 @pytest.fixture(scope="module")
 def test_atted():
-    AttedList = [
+    atted_list = [
         Atted(mode="overwrite", att_name="units", var_name="temperature",
               value="Kelvin"),
         Atted(mode="overwrite", att_name="min", var_name="temperature",
@@ -194,7 +190,7 @@ def test_atted():
     ]
 
     # regular function args
-    AttedList += [
+    atted_list += [
         Atted("append", "long_name", "temperature",
               ("mean", "sea", "level", "temperature")),
         Atted("delete", "short_name", "temp"),
@@ -207,7 +203,7 @@ def test_atted():
 
     # val=10.0
 
-    AttedList += [
+    atted_list += [
         Atted("append", "long_name", "temperature", ar),
         Atted(mode="delete", att_name=".*"),
         Atted(mode="append", att_name="array", var_name="time", value=val,
@@ -217,25 +213,24 @@ def test_atted():
         Atted("nappend", "long", "random", 2 ** 33, stype='ull')
     ]
 
-    for a in AttedList:
-        print(a.prn_option())
+    for atted in atted_list:
+        print(atted.prn_option())
 
-    LimitList = [Limit("lat", 0.0, 88.1),
-                 Limit("time", 0, 10, 3),
-                 Limit("time", 1.0, 2e9, 3),
-                 Limit(dmn_name="three", srt=10, end=30, srd=4, drn=2),
-                 Limit(dmn_name="three", srd=4),
-                 Limit(dmn_name="three", drn=3),
-                 LimitSingle("three", 20.0)
-                 ]
+    limit_list = [Limit("lat", 0.0, 88.1),
+                  Limit("time", 0, 10, 3),
+                  Limit("time", 1.0, 2e9, 3),
+                  Limit(dmn_name="three", srt=10, end=30, srd=4, drn=2),
+                  Limit(dmn_name="three", srd=4),
+                  Limit(dmn_name="three", drn=3),
+                  LimitSingle("three", 20.0)]
 
-    for l in LimitList:
-        print(l.prn_option())
+    for limit in limit_list:
+        print(limit.prn_option())
 
-    tstrename = dict({'lon': 'longitude', 'lat': 'latitude', 'lev': 'level',
-                      'dog': 'cat'})
-    myrename = Rename("g", tstrename)
-    print(myrename.prn_option())
+    renames = dict({'lon': 'longitude', 'lat': 'latitude', 'lev': 'level',
+                    'dog': 'cat'})
+    rename = Rename("g", renames)
+    print(rename.prn_option())
 
 
 def test_cdf_mod_scipy():
@@ -252,7 +247,7 @@ def test_cdf_mod_netcdf4():
     assert nco.cdfMod == "netcdf4"
 
 
-def test_initOptions():
+def test_init_options():
     nco = Nco(debug=True)
     assert nco.debug
     nco = Nco(forceOutput=False)
@@ -264,7 +259,7 @@ def test_initOptions():
 
 
 @pytest.mark.usefixtures("bar_nc")
-def test_operatorPrintsOut(bar_nc):
+def test_operator_prints_out(bar_nc):
     nco = Nco()
     dump = nco.ncdump(input=bar_nc, options=['-h'])
     print(dump)

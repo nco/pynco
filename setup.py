@@ -40,5 +40,13 @@ setup(name='nco',
                    "Topic :: Utilities",
                    "Operating System :: POSIX",
                    "Programming Language :: Python",
-                   ], install_requires=['six']
+                   ], install_requires=['six'],
+      tests_require=[
+          "dateutil",
+          "h5py",
+          "netcdf4",
+          "numpy",
+          "pytest",
+          "scipy"
+      ],
       )

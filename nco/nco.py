@@ -21,6 +21,7 @@ License:
 """
 import os
 import re
+import shlex
 import subprocess
 import tempfile
 import six
@@ -140,10 +141,14 @@ class Nco(object):
         else:
             return False
 
-    def __getattr__(self, method_name):
+    def __getattr__(self, nco_command):
+
+        # shortcut to avoid calling auto_doc decorator if command doesn't exist
+        if nco_command not in self.operators:
+            raise AttributeError("Unknown command: {cmd}".format(cmd=nco_command))
 
         # run the auto_doc decorator, which runs the command with --help option, in order to pull in usage info
-        @auto_doc(method_name, self)
+        @auto_doc(nco_command, self)
 
         # define the function that's called when this magic function runs
         # parse options and construct/call corresponding NCO command
@@ -158,21 +163,22 @@ class Nco(object):
             returnMaArray = kwargs.pop("returnMaArray", False)
             operatorPrintsOut = kwargs.pop("operatorPrintsOut", False)
 
-            # build the nco command
-            # 1. the nco operator
-            cmd = [os.path.join(self.NCOpath, method_name)]
+            # build the NCO command
+            # 1. the NCO operator
+            cmd = [os.path.join(self.NCOpath, nco_command)]
 
             if options:
-                for o in options:
-                    if isinstance(o, six.string_types):
-                        cmd.extend(o.split())
-                    # only a custom object will have this method - eg the
-                    # class atted
-                    elif hasattr(o, 'prn_option'):
-                        cmd.extend(o.prn_option().split())
+                for option in options:
+                    if isinstance(option, six.string_types):
+                        cmd.extend(shlex.split(option))
+                        # cmd.append(o)
+                        # cmd.extend(o.split())
+                    # only a custom object will have this method - eg the class atted
+                    elif hasattr(option, 'prn_option'):
+                        cmd.extend(option.prn_option().split())
                     else:
                         # we assume it's either a list, a tuple or any iterable
-                        cmd.extend(o)
+                        cmd.extend(option)
 
             if debug:
                 if type(debug) == bool:
@@ -203,10 +209,10 @@ class Nco(object):
                     elif isinstance(val, six.string_types) or \
                             isinstance(val, int) or \
                             isinstance(val, float):
-                        cmd.append("--{0}={1}".format(key, val))
+                        cmd.append("--{option}={value}".format(option=key, value=val))
                     else:
                         # we assume it's either a list, a tuple or any iterable
-                        cmd.append("--{0}={1}".format(key, ",".join(val)))
+                        cmd.append("--{option}={values}".format(option=key, values=",".join(val)))
 
             # 2c. Global options come in
             if self.options:
@@ -231,7 +237,7 @@ class Nco(object):
 
             # If operator appends and NCO version >= 4.3.7, remove -H -M -m
             # and their ancillaries from outputOperatorsPattern
-            if operatorAppends and method_name == 'ncks':
+            if operatorAppends and nco_command == 'ncks':
                 nco_version = self.version()
                 if LooseVersion(nco_version) >= LooseVersion('4.3.7'):
                     self.outputOperatorsPattern = [
@@ -239,8 +245,7 @@ class Nco(object):
 
             # Check if operator prints out
             for piece in cmd:
-                if piece in self.outputOperatorsPattern or \
-                        method_name == 'ncdump':
+                if (piece in self.outputOperatorsPattern) or (nco_command == 'ncdump'):
                     operatorPrintsOut = True
 
             if operatorPrintsOut:
@@ -248,7 +253,7 @@ class Nco(object):
                 self.returncode = retvals["returncode"]
                 self.stdout = retvals["stdout"]
                 self.stderr = retvals["stderr"]
-                if not self.hasError(method_name, input, cmd, retvals):
+                if not self.hasError(nco_command, input, cmd, retvals):
                     return retvals["stdout"]
                     # parsing can be done by 3rd party
                 else:
@@ -274,7 +279,7 @@ class Nco(object):
                 else:
 
                     # create a temporary file, use this as the output
-                    file_name_prefix = method_name + "_" + input.split(os.sep)[-1]
+                    file_name_prefix = nco_command + "_" + input.split(os.sep)[-1]
                     tmp_file = tempfile.NamedTemporaryFile(mode='w+b',
                                                            prefix=file_name_prefix,
                                                            suffix=".tmp")
@@ -285,7 +290,7 @@ class Nco(object):
                 self.returncode = retvals["returncode"]
                 self.stdout = retvals["stdout"]
                 self.stderr = retvals["stderr"]
-                if self.hasError(method_name, input, cmd, retvals):
+                if self.hasError(nco_command, input, cmd, retvals):
                     if self.returnNoneOnError:
                         return None
                     else:
@@ -302,18 +307,18 @@ class Nco(object):
             else:
                 return output
 
-        if (method_name in self.__dict__) or \
-           (method_name in self.operators):
+        if (nco_command in self.__dict__) or \
+           (nco_command in self.operators):
             if self.debug:
-                print("Found method: {0}".format(method_name))
+                print("Found method: {0}".format(nco_command))
             # cache the method for later
-            setattr(self.__class__, method_name, get)
+            setattr(self.__class__, nco_command, get)
             return get.__get__(self)
         else:
             # If the method isn't in our dictionary, act normal.
             print("#=====================================================")
-            print("Cannot find method: {0}".format(method_name))
-            raise AttributeError("Unknown method {0}!".format(method_name))
+            print("Cannot find method: {0}".format(nco_command))
+            raise AttributeError("Unknown method {0}!".format(nco_command))
 
     def loadCdf(self):
         if self.cdfMod == "netcdf4":
@@ -394,7 +399,7 @@ class Nco(object):
 
     def readCdf(self, infile):
         """Return a cdf handle created by the available cdf library.
-        python-netcdf4 and scipy suported (default:scipy)"""
+        python-netcdf4 and scipy supported (default:scipy)"""
         if not self.returnCdf:
             self.loadCdf()
 
