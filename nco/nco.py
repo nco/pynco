@@ -23,7 +23,6 @@ import os
 import re
 import subprocess
 import tempfile
-import random
 import six
 from distutils.version import LooseVersion
 
@@ -104,29 +103,37 @@ class Nco(object):
             print('# DEBUG: CALL>> {0}'.format(' '.join(inline_cmd)))
             print('# DEBUG ==================================================')
 
-        try:
-            proc = subprocess.Popen(' '.join(inline_cmd),
-                                    shell=True,
-                                    stderr=subprocess.PIPE,
-                                    stdout=subprocess.PIPE,
-                                    env=environment)
-        except OSError:
-            # Argument list may have been too long, so don't use a shell
-            proc = subprocess.Popen(inline_cmd,
-                                    stderr=subprocess.PIPE,
-                                    stdout=subprocess.PIPE,
-                                    env=environment)
-        retvals = proc.communicate()
-        return {"stdout": retvals[0],
-                "stderr": retvals[1],
-                "returncode": proc.returncode}
+        # try:
+        #     proc = subprocess.Popen(' '.join(inline_cmd),
+        #                             shell=True,
+        #                             stderr=subprocess.PIPE,
+        #                             stdout=subprocess.PIPE,
+        #                             env=environment)
+        # except OSError:
+        #     # Argument list may have been too long, so don't use a shell
+        #     proc = subprocess.Popen(inline_cmd,
+        #                             stderr=subprocess.PIPE,
+        #                             stdout=subprocess.PIPE,
+        #                             env=environment)
+        # retvals = proc.communicate()
+        # return {"stdout": retvals[0],
+        #         "stderr": retvals[1],
+        #         "returncode": proc.returncode}
+
+        response = subprocess.run(inline_cmd,
+                                  stderr=subprocess.PIPE,
+                                  stdout=subprocess.PIPE,
+                                  env=environment)
+        return {"stdout": response.stdout,
+                "stderr": response.stderr,
+                "returncode": response.returncode}
 
     def hasError(self, method_name, inputs, cmd, retvals):
-        if (self.debug):
-            print("# DEBUG: RETURNCODE: {0}".format(retvals["returncode"]))
+        if self.debug:
+            print("# DEBUG: RETURNCODE: {return_code}".format(return_code=retvals["returncode"]))
         if retvals["returncode"] != 0:
-            print("Error in calling operator {0} with:".format(method_name))
-            print(">>> {0} <<<".format(' '.join(cmd)))
+            print("Error in calling operator {method} with:".format(method=method_name))
+            print(">>> {command} <<<".format(command=' '.join(cmd)))
             print("Inputs: {0!s}".format(inputs))
             print(retvals["stderr"])
             return True
@@ -135,9 +142,13 @@ class Nco(object):
 
     def __getattr__(self, method_name):
 
+        # run the auto_doc decorator, which runs the command with --help option, in order to pull in usage info
         @auto_doc(method_name, self)
+
+        # define the function that's called when this magic function runs
+        # parse options and construct/call corresponding NCO command
         def get(self, input, **kwargs):
-            options = kwargs.pop('options', False)
+            options = kwargs.pop('options', [])
             force = kwargs.pop("force", self.forceOutput)
             output = kwargs.pop("output", None)
             environment = kwargs.pop("env", None)
@@ -187,7 +198,7 @@ class Nco(object):
                 for key, val in list(kwargs.items()):
                     if val and type(val) == bool:
                         cmd.append("--{0}".format(key))
-                        if cmd[-1] in (self.DontForcePattern):
+                        if cmd[-1] in self.DontForcePattern:
                             force = False
                     elif isinstance(val, six.string_types) or \
                             isinstance(val, int) or \
@@ -246,7 +257,7 @@ class Nco(object):
                     else:
                         raise NCOException(**retvals)
             else:
-                if output:
+                if output is not None:
                     if isinstance(output, six.string_types):
                         cmd.append("--output={0}".format(output))
                     else:
@@ -259,6 +270,16 @@ class Nco(object):
                                             {1}'.format(output,
                                                         type(output)))
                         cmd.extend("--output={0}".format(output))
+
+                else:
+
+                    # create a temporary file, use this as the output
+                    file_name_prefix = method_name + "_" + input.split(os.sep)[-1]
+                    tmp_file = tempfile.NamedTemporaryFile(mode='w+b',
+                                                           prefix=file_name_prefix,
+                                                           suffix=".tmp")
+                    output = tmp_file.name
+                    cmd.append("--output={0}".format(output))
 
                 retvals = self.call(cmd, inputs=input, environment=environment)
                 self.returncode = retvals["returncode"]
@@ -299,14 +320,14 @@ class Nco(object):
             try:
                 import netCDF4 as cdf
                 self.cdf = cdf
-            except:
+            except Exception:
                 raise ImportError("Could not load python-netcdf4 - try to "
                                   "setting 'cdfMod='scipy'")
         elif self.cdfMod == "scipy":
             try:
                 import scipy.io.netcdf as cdf
                 self.cdf = cdf
-            except:
+            except Exception:
                 raise ImportError("Could not load scipy.io.netcdf - try to "
                                   "setting 'cdfMod='netcdf4'")
         else:
@@ -347,8 +368,9 @@ class Nco(object):
         return self.NCOpath
 
     # ==================================================================
-    # Addional operators:
+    # Additional operators:
     # ------------------------------------------------------------------
+    @property
     def module_version(self):
         return '0.0.0'
 
@@ -463,10 +485,6 @@ class MyTempfile(object):
             t.close()
 
             return t.name
-        else:
-            N = 10000000
-            t = "{0}".format(random.randint(N))
-
 
 def auto_doc(tool, nco_self):
     """Generate the __doc__ string of the decorated function by

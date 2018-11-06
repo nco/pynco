@@ -60,7 +60,7 @@ def testOps():
 
 def test_mod_version():
     nco = Nco()
-    assert '0.0.0' == nco.module_version()
+    assert '0.0.0' == nco.module_version
 
 
 def test_getOperators():
