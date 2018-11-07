@@ -24,8 +24,11 @@ import re
 import shlex
 import subprocess
 import tempfile
-import six
+
 from distutils.version import LooseVersion
+import six
+
+from nco.custom import Atted
 
 
 class NCOException(Exception):
@@ -41,24 +44,24 @@ class NCOException(Exception):
 
 
 class Nco(object):
-    def __init__(self, returnCdf=False, returnNoneOnError=False,
-                 forceOutput=True, cdfMod='netcdf4', debug=0, **kwargs):
+    def __init__(self, return_cdf=False, return_none_on_error=False,
+                 force_output=True, cdf_module='netcdf4', debug=0, **kwargs):
 
         operators = ['ncap2', 'ncatted', 'ncbo', 'nces', 'ncecat', 'ncflint',
                      'ncks', 'ncpdq', 'ncra', 'ncrcat', 'ncrename', 'ncwa',
                      'ncea', 'ncdump']
 
         if 'NCOpath' in os.environ:
-            self.NCOpath = os.environ['NCOpath']
+            self.nco_path = os.environ['NCOpath']
         else:
-            self.NCOpath = os.path.split(which('ncks'))[0]
+            self.nco_path = os.path.split(which('ncks'))[0]
 
         self.operators = operators
-        self.returnCdf = returnCdf
-        self.returnNoneOnError = returnNoneOnError
+        self.return_cdf = return_cdf
+        self.return_none_on_error = return_none_on_error
         self.tempfile = MyTempfile()
-        self.forceOutput = forceOutput
-        self.cdfMod = cdfMod
+        self.force_output = force_output
+        self.cdf_module = cdf_module
         self.debug = debug
         self.outputOperatorsPattern = ['ncdump', '-H', '--data',
                                        '--hieronymus', '-M', '--Mtd',
@@ -93,7 +96,7 @@ class Nco(object):
             if isinstance(inputs, six.string_types):
                 inline_cmd.append(inputs)
             else:
-                # we assume it's either a list, a tuple or any iterable.
+                # assume it's an iterable
                 inline_cmd.extend(inputs)
 
         if self.debug:
@@ -129,7 +132,7 @@ class Nco(object):
                 "stderr": response.stderr,
                 "returncode": response.returncode}
 
-    def hasError(self, method_name, inputs, cmd, retvals):
+    def has_error(self, method_name, inputs, cmd, retvals):
         if self.debug:
             print("# DEBUG: RETURNCODE: {return_code}".format(return_code=retvals["returncode"]))
         if retvals["returncode"] != 0:
@@ -149,35 +152,31 @@ class Nco(object):
 
         # run the auto_doc decorator, which runs the command with --help option, in order to pull in usage info
         @auto_doc(nco_command, self)
-
         # define the function that's called when this magic function runs
         # parse options and construct/call corresponding NCO command
-        def get(self, input, **kwargs):
+        def get(self, input_file, **kwargs):
             options = kwargs.pop('options', [])
-            force = kwargs.pop("force", self.forceOutput)
+            force = kwargs.pop("force", self.force_output)
             output = kwargs.pop("output", None)
             environment = kwargs.pop("env", None)
             debug = kwargs.pop("debug", self.debug)
-            returnCdf = kwargs.pop("returnCdf", False)
-            returnArray = kwargs.pop("returnArray", False)
-            returnMaArray = kwargs.pop("returnMaArray", False)
-            operatorPrintsOut = kwargs.pop("operatorPrintsOut", False)
+            return_cdf = kwargs.pop("return_cdf", False)
+            return_array = kwargs.pop("return_array", False)
+            return_ma_array = kwargs.pop("return_ma_array", False)
+            operator_prints_out = kwargs.pop("operatorPrintsOut", False)
 
             # build the NCO command
             # 1. the NCO operator
-            cmd = [os.path.join(self.NCOpath, nco_command)]
+            cmd = [os.path.join(self.nco_path, nco_command)]
 
             if options:
                 for option in options:
                     if isinstance(option, six.string_types):
                         cmd.extend(shlex.split(option))
-                        # cmd.append(o)
-                        # cmd.extend(o.split())
-                    # only a custom object will have this method - eg the class atted
-                    elif hasattr(option, 'prn_option'):
+                    elif isinstance(option, Atted):
                         cmd.extend(option.prn_option().split())
                     else:
-                        # we assume it's either a list, a tuple or any iterable
+                        # assume it's an iterable
                         cmd.extend(option)
 
             if debug:
@@ -230,14 +229,14 @@ class Nco(object):
                 cmd.append('--overwrite')
 
             # Check if operator appends
-            operatorAppends = False
+            operator_appends = False
             for piece in cmd:
                 if piece in self.AppendOperatorsPattern:
-                    operatorAppends = True
+                    operator_appends = True
 
             # If operator appends and NCO version >= 4.3.7, remove -H -M -m
             # and their ancillaries from outputOperatorsPattern
-            if operatorAppends and nco_command == 'ncks':
+            if operator_appends and nco_command == 'ncks':
                 nco_version = self.version()
                 if LooseVersion(nco_version) >= LooseVersion('4.3.7'):
                     self.outputOperatorsPattern = [
@@ -246,18 +245,18 @@ class Nco(object):
             # Check if operator prints out
             for piece in cmd:
                 if (piece in self.outputOperatorsPattern) or (nco_command == 'ncdump'):
-                    operatorPrintsOut = True
+                    operator_prints_out = True
 
-            if operatorPrintsOut:
-                retvals = self.call(cmd, inputs=input)
+            if operator_prints_out:
+                retvals = self.call(cmd, inputs=input_file)
                 self.returncode = retvals["returncode"]
                 self.stdout = retvals["stdout"]
                 self.stderr = retvals["stderr"]
-                if not self.hasError(nco_command, input, cmd, retvals):
+                if not self.has_error(nco_command, input_file, cmd, retvals):
                     return retvals["stdout"]
                     # parsing can be done by 3rd party
                 else:
-                    if self.returnNoneOnError:
+                    if self.return_none_on_error:
                         return None
                     else:
                         raise NCOException(**retvals)
@@ -279,31 +278,31 @@ class Nco(object):
                 else:
 
                     # create a temporary file, use this as the output
-                    file_name_prefix = nco_command + "_" + input.split(os.sep)[-1]
+                    file_name_prefix = nco_command + "_" + input_file.split(os.sep)[-1]
                     tmp_file = tempfile.NamedTemporaryFile(mode='w+b',
                                                            prefix=file_name_prefix,
                                                            suffix=".tmp")
                     output = tmp_file.name
                     cmd.append("--output={0}".format(output))
 
-                retvals = self.call(cmd, inputs=input, environment=environment)
+                retvals = self.call(cmd, inputs=input_file, environment=environment)
                 self.returncode = retvals["returncode"]
                 self.stdout = retvals["stdout"]
                 self.stderr = retvals["stderr"]
-                if self.hasError(nco_command, input, cmd, retvals):
-                    if self.returnNoneOnError:
+                if self.has_error(nco_command, input_file, cmd, retvals):
+                    if self.return_none_on_error:
                         return None
                     else:
                         raise NCOException(**retvals)
 
-            if returnArray:
-                return self.readArray(output, returnArray)
-            elif returnMaArray:
-                return self.readMaArray(output, returnMaArray)
-            elif self.returnCdf or returnCdf:
-                if not self.returnCdf:
-                    self.loadCdf()
-                    return self.readCdf(output)
+            if return_array:
+                return self.read_array(output, return_array)
+            elif return_ma_array:
+                return self.readMaArray(output, return_ma_array)
+            elif self.return_cdf or return_cdf:
+                if not self.return_cdf:
+                    self.load_cdf_module()
+                    return self.read_cdf(output)
             else:
                 return output
 
@@ -320,45 +319,45 @@ class Nco(object):
             print("Cannot find method: {0}".format(nco_command))
             raise AttributeError("Unknown method {0}!".format(nco_command))
 
-    def loadCdf(self):
-        if self.cdfMod == "netcdf4":
+    def load_cdf_module(self):
+        if self.cdf_module == "netcdf4":
             try:
                 import netCDF4 as cdf
                 self.cdf = cdf
             except Exception:
                 raise ImportError("Could not load python-netcdf4 - try to "
-                                  "setting 'cdfMod='scipy'")
-        elif self.cdfMod == "scipy":
+                                  "setting 'cdf_module='scipy'")
+        elif self.cdf_module == "scipy":
             try:
                 import scipy.io.netcdf as cdf
                 self.cdf = cdf
             except Exception:
                 raise ImportError("Could not load scipy.io.netcdf - try to "
-                                  "setting 'cdfMod='netcdf4'")
+                                  "setting 'cdf_module='netcdf4'")
         else:
-            raise ValueError("Unknown value provided for cdfMod.  Valid "
+            raise ValueError("Unknown value provided for cdf_module.  Valid "
                              "values are 'scipy' and 'netcdf4'")
 
-    def setReturnArray(self, value=True):
-        self.returnCdf = value
+    def set_return_array(self, value=True):
+        self.return_cdf = value
         if value:
-            self.loadCdf()
+            self.load_cdf_module()
 
-    def unsetReturnArray(self):
-        self.setReturnArray(False)
+    def unset_return_array(self):
+        self.set_return_array(False)
 
-    def hasNco(self, path=None):
+    def has_nco(self, path=None):
         if path is None:
-            path = self.NCOpath
+            path = self.nco_path
 
         if os.path.isdir(path) and os.access(path, os.X_OK):
             return True
         else:
             return False
 
-    def checkNco(self):
-        if self.hasNco():
-            call = [os.path.join(self.NCOpath, 'ncra'), '--version']
+    def check_nco(self):
+        if self.has_nco():
+            call = [os.path.join(self.nco_path, 'ncra'), '--version']
             proc = subprocess.Popen(' '.join(call),
                                     shell=True,
                                     stderr=subprocess.PIPE,
@@ -366,11 +365,11 @@ class Nco(object):
             retvals = proc.communicate()
             print(retvals)
 
-    def setNco(self, value):
-        self.NCOpath = value
+    def set_nco_path(self, value):
+        self.nco_path = value
 
-    def getNco(self):
-        return self.NCOpath
+    def get_nco_path(self):
+        return self.nco_path
 
     # ==================================================================
     # Additional operators:
@@ -381,7 +380,7 @@ class Nco(object):
 
     def version(self):
         # return NCO's version
-        proc = subprocess.Popen([os.path.join(self.NCOpath, 'ncra'),
+        proc = subprocess.Popen([os.path.join(self.nco_path, 'ncra'),
                                  '--version'],
                                 stderr=subprocess.PIPE,
                                 stdout=subprocess.PIPE)
@@ -397,67 +396,67 @@ class Nco(object):
                               ncra_help)
         return match.group(1).split(' ')[0]
 
-    def readCdf(self, infile):
+    def read_cdf(self, infile):
         """Return a cdf handle created by the available cdf library.
         python-netcdf4 and scipy supported (default:scipy)"""
-        if not self.returnCdf:
-            self.loadCdf()
+        if not self.return_cdf:
+            self.load_cdf_module()
 
-        if self.cdfMod == "scipy":
+        if self.cdf_module == "scipy":
             # making it compatible to older scipy versions
-            fileObj = self.cdf.netcdf_file(infile, mode='r')
-        elif self.cdfMod == "netcdf4":
-            fileObj = self.cdf.Dataset(infile)
+            file_obj = self.cdf.netcdf_file(infile, mode='r')
+        elif self.cdf_module == "netcdf4":
+            file_obj = self.cdf.Dataset(infile)
         else:
             raise ImportError("Could not import data \
                               from file {0}".format(infile))
-        return fileObj
+        return file_obj
 
-    def openCdf(self, infile):
+    def open_cdf(self, infile):
         """Return a cdf handle created by the available cdf library.
         python-netcdf4 and scipy suported (default:scipy)"""
-        if not self.returnCdf:
-            self.loadCdf()
+        if not self.return_cdf:
+            self.load_cdf_module()
 
-        if self.cdfMod == "scipy":
+        if self.cdf_module == "scipy":
             # making it compatible to older scipy versions
             print("Use scipy")
-            fileObj = self.cdf.netcdf_file(infile, mode='r+')
-        elif self.cdfMod == "netcdf4":
+            file_obj = self.cdf.netcdf_file(infile, mode='r+')
+        elif self.cdf_module == "netcdf4":
             print("Use netcdf4")
-            fileObj = self.cdf.Dataset(infile, 'r+')
+            file_obj = self.cdf.Dataset(infile, 'r+')
         else:
             raise ImportError("Could not import data \
                               from file: {0}".format(infile))
 
-        return fileObj
+        return file_obj
 
-    def readArray(self, infile, varname):
+    def read_array(self, infile, var_name):
         """Directly return a numpy array for a given variable name"""
-        filehandle = self.readCdf(infile)
+        file_handle = self.read_cdf(infile)
         try:
             # return the data array
-            return filehandle.variables[varname][:]
+            return file_handle.variables[var_name][:]
         except KeyError:
-            print("Cannot find variable: {0}".format(varname))
+            print("Cannot find variable: {0}".format(var_name))
             raise KeyError
 
-    def readMaArray(self, infile, varname):
+    def readMaArray(self, infile, var_name):
         """Create a masked array based on cdf's FillValue"""
-        fileObj = self.readCdf(infile)
+        file_obj = self.read_cdf(infile)
 
         # .data is not backwards compatible to old scipy versions, [:] is
-        data = fileObj.variables[varname][:]
+        data = file_obj.variables[var_name][:]
 
         # load numpy if available
         try:
             import numpy as np
-        except:
+        except Exception:
             raise ImportError("numpy is required to return masked arrays.")
 
-        if hasattr(fileObj.variables[varname], '_FillValue'):
+        if hasattr(file_obj.variables[var_name], '_FillValue'):
             # return masked array
-            fill_val = fileObj.variables[varname]._FillValue
+            fill_val = file_obj.variables[var_name]._FillValue
             retval = np.ma.masked_where(data == fill_val, data)
         else:
             # generate dummy mask which is always valid
@@ -479,7 +478,7 @@ class MyTempfile(object):
             if os.path.isfile(filename):
                 os.remove(filename)
 
-    def setPersist(self, value):
+    def set_persistent_tempfiles(self, value):
         self.persistent_tempfiles = value
 
     def path(self):
@@ -491,11 +490,15 @@ class MyTempfile(object):
 
             return t.name
 
+
 def auto_doc(tool, nco_self):
     """Generate the __doc__ string of the decorated function by
     calling the nco help command"""
     def desc(func):
-        func.__doc__ = nco_self.call([tool, '--help']).get('stdout')
+        if tool != 'ncdump':
+            func.__doc__ = nco_self.call([tool, '--help']).get('stdout')
+        else:
+            func.__doc__ = None
         return func
     return desc
 

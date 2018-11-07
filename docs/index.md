@@ -71,15 +71,15 @@ nco = Nco()
 Now any NCO command (i.e. `ncks`, `ncra`, ...) can be called as a method of `nco`.
 
 * Required arguments
-    -  `input` - Input netcdf file name, str
+    -  `input_file` - Input netcdf file name, str
 
 * Optional arguments
 
     -  `output` - `str` or `list` of strings representing input netCDF filenames.  If not provided and operator returns a file (not an array or stdout text), the method will return a temporary file.
-    - `debug` - `bool` or `int`, if less than 0 or True, debug statements will be turned on for NCO and NCOpy (default: `False`)
-    -  `returnCdf` - `bool`, return a netCDF file handle (default: `False`)
-    -  `returnArray` - `str`. return a numpy array of variable name (default: `''`)
-    -  `returnMaArray` - `str`. return a numpy masked array of variable name (default: `''`)
+    -  `debug` - `bool` or `int`, if less than 0 or True, debug statements will be turned on for NCO and NCOpy (default: `False`)
+    -  `return_cdf` - `bool`, return a netCDF file handle (default: `False`)
+    -  `return_array` - `str`. return a numpy array of variable name (default: `''`)
+    -  `return_ma_array` - `str`. return a numpy masked array of variable name (default: `''`)
     -  `options` - `list`, NCO input options, for example `options=['-7', '-L 1']` (default: `[]`)
     -  `Atted` - a wrapper object to be used for ncatted. Atted objects can be included in the options list
     -  `Limit` - a wrapper object for the hyperslab (`-d`) command line option
@@ -92,33 +92,33 @@ Now any NCO command (i.e. `ncks`, `ncra`, ...) can be called as a method of `nco
 *  File information:
 
     ```python
-    ncdump_string = nco.ncdump(input=ifile)
+    ncdump_string = nco.ncdump(input_file=ifile)
     ```
 
 *  Operators with user defined regular output files:
 
     ```python
-    nco.ncra(input=ifile, output=ofile)
+    nco.ncra(input_file=ifile, output=ofile)
     ```
 
 *  Use temporary output files:
 
     ```python
-    temp_ofile = nco.ncrcat(input=ifile)
+    temp_ofile = nco.ncrcat(input_file=ifile)
     ```
 
 *  Set global NCO options:
 
     ```python
-    nco.ncks(input=ifile, output=ofile, options="--netcdf4")
+    nco.ncks(input_file=ifile, output=ofile, options="--netcdf4")
     ```
 
 *  Return multi-dimension arrays:
 
     ```python
-    temperatures = nco.ncra(input=ifile, returnArray=True).variables['T'][:]
-    temperatures = nco.ncra(input=ifile, returnCdf=True).variables['T'][:]
-    temperatures = nco.ncra(input=ifile, returnArray='T')
+    temperatures = nco.ncra(input_file=ifile, return_array=True).variables['T'][:]
+    temperatures = nco.ncra(input_file=ifile, return_cdf=True).variables['T'][:]
+    temperatures = nco.ncra(input_file=ifile, return_array='T')
     ```
 
 * Wrapper Objects
@@ -131,7 +131,7 @@ Now any NCO command (i.e. `ncks`, `ncra`, ...) can be called as a method of `nco
 
     ```
     ncatted -a _FillValue,three_dmn,o,d,-9.91e+33 in.nc
-    nco.ncatted(input="in.nc",options=[c.atted("overwrite","_FillValue","three_dmn",-9.91e+33,'d')])
+    nco.ncatted(input_file="in.nc",options=[c.atted("overwrite","_FillValue","three_dmn",-9.91e+33,'d')])
     ```
 
 ## Tempfile helpers
@@ -140,13 +140,13 @@ Now any NCO command (i.e. `ncks`, `ncra`, ...) can be called as a method of `nco
 absence of a specified output file, `pynco` will create a temporary file to allow the results of the task to be returned to the user.  For example:
 
 ```python
-temperatures = nco.ncra(input=ifile, returnArray='T')
+temperatures = nco.ncra(input_file=ifile, return_array='T')
 ```
 
 is equivalent to:
 
 ```
-temperatures = nco.ncra(input=ifile, output=tempfile.mktemp(), returnArray='T')
+temperatures = nco.ncra(input_file=ifile, output=tempfile.mktemp(), return_array='T')
 ```
 
 
@@ -161,7 +161,7 @@ opt = [
     c.Atted("m", "max", "temperature", 283.01, 'float64'),
     c.Atted("c", "bnds", "time", [0.5, 1.5], 'f')
 ]
-nco.ncatted(input="in.nc", options=opt)
+nco.ncatted(input_file="in.nc", options=opt)
 ```
 
 You can also use keyword arguments in the call so the above options become
@@ -173,7 +173,7 @@ opt = [
     c.Atted(mode="modify", attName="max", varName="temperature", Value=283.01, sType='float64'),
     c.Atted(mode="create", attName="bnds", varName="time", Value=[0.5, 1.5], sType='float32')
 ]
-nco.ncatted(input="in.nc", options=opt)
+nco.ncatted(input_file="in.nc", options=opt)
 ```
 
 #### `Value`
@@ -217,7 +217,7 @@ opt = [
     c.Limit(dmn_name="lev", srd=4)
 ]
 
-nco.ncks(input="in.nc", output="out.nc", options=opt)
+nco.ncks(input_file="in.nc", output="out.nc", options=opt)
 ```
 
 ##  Rename wrapper
@@ -237,7 +237,7 @@ rDict = {
     'p': 'pressure',
     't': 'temperature'
 }
-nco.ncrename(input="in.nc", options=[ c.Rename("variable", rDict) ])
+nco.ncrename(input_file="in.nc", options=[ c.Rename("variable", rDict) ])
 ```
 
 Also equivalent:
@@ -255,7 +255,7 @@ rDict = {
     'lon': 'longitude',
     'lat': 'latitude'
 }
-nco.ncrename(input="in.nc", options=[ c.Rename("d", rDict), c.Rename("v", rDict) ])
+nco.ncrename(input_file="in.nc", options=[ c.Rename("d", rDict), c.Rename("v", rDict) ])
 ```
 
 ## Support, Issues, Bugs, ...

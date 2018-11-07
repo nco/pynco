@@ -75,7 +75,7 @@ def test_list_all_operators():
 def test_use_list_inputs(foo_nc, bar_nc):
     nco = Nco(debug=True)
     infiles = [foo_nc, bar_nc]
-    nco.ncrcat(input=infiles, output='out.nc')
+    nco.ncrcat(input_file=infiles, output='out.nc')
 
 
 @pytest.mark.usefixtures("foo_nc")
@@ -85,51 +85,51 @@ def test_use_list_options(foo_nc):
     options.extend(['-a', 'units,time,o,c,"days since 1999-01-01"'])
     options.extend(['-a', 'long_name,time,o,c,time'])
     options.extend(['-a', 'calendar,time,o,c,noleap'])
-    nco.ncatted(input=foo_nc, output='out.nc', options=options)
+    nco.ncatted(input_file=foo_nc, output='out.nc', options=options)
 
 
 @pytest.mark.usefixtures("foo_nc", "bar_nc")
 def test_ncra_mult_files(foo_nc, bar_nc):
     nco = Nco(debug=True)
     infiles = [foo_nc, bar_nc]
-    nco.ncra(input=infiles, output='out.nc')
+    nco.ncra(input_file=infiles, output='out.nc')
 
 
 @pytest.mark.usefixtures("foo_nc")
 def test_ncra_single_file(foo_nc):
     nco = Nco(debug=True)
     infile = foo_nc
-    nco.ncra(input=infile, output='out.nc')
+    nco.ncra(input_file=infile, output='out.nc')
 
 
 @pytest.mark.usefixtures("foo_nc")
 def test_ncks_extract(foo_nc):
     nco = Nco(debug=True)
     infile = foo_nc
-    nco.ncks(input=infile, output='out.nc', variable='random')
+    nco.ncks(input_file=infile, output='out.nc', variable='random')
 
 
 @pytest.mark.usefixtures("foo_nc", "bar_nc")
 def test_ncea_mult_files(foo_nc, bar_nc):
     nco = Nco(debug=True)
     infiles = [foo_nc, bar_nc]
-    nco.ncea(input=infiles, output='out.nc')
+    nco.ncea(input_file=infiles, output='out.nc')
 
 
 def test_error_exception():
     nco = Nco()
     assert hasattr(nco, 'nonExistingMethod') is False
     with pytest.raises(NCOException):
-        nco.ncks(input="", output="")
+        nco.ncks(input_file="", output="")
 
 
 @pytest.mark.usefixtures("foo_nc")
 def test_return_array(foo_nc):
-    nco = Nco(cdfMod='netcdf4')
-    random1 = nco.ncea(input=foo_nc, output="tmp.nc", returnCdf=True,
+    nco = Nco(cdf_module='netcdf4')
+    random1 = nco.ncea(input_file=foo_nc, output="tmp.nc", return_cdf=True,
                        options=['-O']).variables['random'][:]
     assert isinstance(random1, np.ndarray)
-    random2 = nco.ncea(input=foo_nc, output="tmp.nc", returnArray='random',
+    random2 = nco.ncea(input_file=foo_nc, output="tmp.nc", return_array='random',
                        options=['-O'])
     assert isinstance(random2, np.ndarray)
     np.testing.assert_equal(random1, random2)
@@ -138,23 +138,23 @@ def test_return_array(foo_nc):
 @pytest.mark.usefixtures("bar_mask_nc", "random_masked_field")
 def test_return_ma_array(bar_mask_nc, random_masked_field):
     nco = Nco()
-    field = nco.ncea(input=bar_mask_nc, output="tmp.nc",
-                     returnMaArray='random', options=['-O'])
+    field = nco.ncea(input_file=bar_mask_nc, output="tmp.nc",
+                     return_ma_array='random', options=['-O'])
     assert type(field) == np.ma.core.MaskedArray
 
 
 @pytest.mark.usefixtures("foo_nc")
 def test_return_cdf(foo_nc):
-    nco = Nco(cdfMod='scipy')
-    test_cdf = nco.ncea(input=foo_nc, output="tmp.nc", returnCdf=True,
+    nco = Nco(cdf_module='scipy')
+    test_cdf = nco.ncea(input_file=foo_nc, output="tmp.nc", return_cdf=True,
                         options=['-O'])
     assert type(test_cdf) == scipy.io.netcdf.netcdf_file
     expected_vars = ['time', 'random']
     for var in expected_vars:
         assert var in list(test_cdf.variables.keys())
 
-    nco = Nco(cdfMod='netcdf4')
-    test_cdf = nco.ncea(input=foo_nc, output="tmp.nc", returnCdf=True,
+    nco = Nco(cdf_module='netcdf4')
+    test_cdf = nco.ncea(input_file=foo_nc, output="tmp.nc", return_cdf=True,
                         options=['-O'])
     assert type(test_cdf) == netCDF4.Dataset
     for var in expected_vars:
@@ -234,32 +234,32 @@ def test_atted():
 
 
 def test_cdf_mod_scipy():
-    nco = Nco(cdfMod='scipy')
-    nco.setReturnArray()
-    print(('nco.cdfMod: {0}'.format(nco.cdfMod)))
-    assert nco.cdfMod == "scipy"
+    nco = Nco(cdf_module='scipy')
+    nco.set_return_array()
+    print(('nco.cdf_module: {0}'.format(nco.cdf_module)))
+    assert nco.cdf_module == "scipy"
 
 
 def test_cdf_mod_netcdf4():
-    nco = Nco(cdfMod='netcdf4')
-    nco.setReturnArray()
-    print(('nco.cdfMod: {0}'.format(nco.cdfMod)))
-    assert nco.cdfMod == "netcdf4"
+    nco = Nco(cdf_module='netcdf4')
+    nco.set_return_array()
+    print(('nco.cdf_module: {0}'.format(nco.cdf_module)))
+    assert nco.cdf_module == "netcdf4"
 
 
 def test_init_options():
     nco = Nco(debug=True)
     assert nco.debug
-    nco = Nco(forceOutput=False)
-    assert nco.forceOutput is False
-    nco = Nco(returnCdf=True,
-              returnNoneOnError=True)
-    assert nco.returnCdf
-    assert nco.returnNoneOnError
+    nco = Nco(force_output=False)
+    assert nco.force_output is False
+    nco = Nco(return_cdf=True,
+              return_none_on_error=True)
+    assert nco.return_cdf
+    assert nco.return_none_on_error
 
 
 @pytest.mark.usefixtures("bar_nc")
 def test_operator_prints_out(bar_nc):
     nco = Nco()
-    dump = nco.ncdump(input=bar_nc, options=['-h'])
+    dump = nco.ncdump(input_file=bar_nc, options=['-h'])
     print(dump)
