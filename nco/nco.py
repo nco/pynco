@@ -28,7 +28,7 @@ import tempfile
 from distutils.version import LooseVersion
 import six
 
-from nco.custom import Atted
+from nco import custom
 
 
 class NCOException(Exception):
@@ -171,7 +171,7 @@ class Nco(object):
                 for option in options:
                     if isinstance(option, six.string_types):
                         cmd.extend(shlex.split(option))
-                    elif isinstance(option, Atted):
+                    elif isinstance(option, custom.Atted):
                         cmd.extend(option.prn_option().split())
                     else:
                         # assume it's an iterable
