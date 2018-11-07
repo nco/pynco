@@ -20,6 +20,7 @@ License:
     with this program; if not, write to the Free Software Foundation, Inc.,
     51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 """
+import distutils.spawn
 import os
 
 import numpy as np
@@ -27,7 +28,7 @@ import netCDF4
 import scipy.io.netcdf
 import pytest
 
-from nco import NCOException, Nco, which
+from nco import NCOException, Nco
 from nco.custom import Atted, Limit, LimitSingle, Rename
 
 
@@ -36,7 +37,8 @@ ops = ['ncap2', 'ncatted', 'ncbo', 'nces', 'ncecat', 'ncflint', 'ncks',
 
 
 def test_nco_present():
-    ncopath = which('ncks')
+    ncopath = distutils.spawn.find_executable('ncks')
+    # ncopath = which('ncks')
     assert os.path.isfile(ncopath)
 
 

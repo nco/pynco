@@ -19,6 +19,7 @@ License:
     with this program; if not, write to the Free Software Foundation, Inc.,
     51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 """
+import distutils.spawn
 import os
 import re
 import shlex
@@ -28,8 +29,7 @@ import tempfile
 from distutils.version import LooseVersion
 import six
 
-from nco import custom
-
+from nco.custom import Atted
 
 class NCOException(Exception):
     def __init__(self, stdout, stderr, returncode):
@@ -54,7 +54,7 @@ class Nco(object):
         if 'NCOpath' in os.environ:
             self.nco_path = os.environ['NCOpath']
         else:
-            self.nco_path = os.path.split(which('ncks'))[0]
+            self.nco_path = os.path.split(distutils.spawn.find_executable('ncks'))[0]
 
         self.operators = operators
         self.return_cdf = return_cdf
@@ -111,16 +111,22 @@ class Nco(object):
         if use_shell:
             inline_cmd = ' '.join(inline_cmd)
 
-        # run the command
-        response = subprocess.run(inline_cmd,
-                                  stderr=subprocess.PIPE,
-                                  stdout=subprocess.PIPE,
-                                  shell=use_shell,
-                                  env=environment)
-
-        return {"stdout": response.stdout,
-                "stderr": response.stderr,
-                "returncode": response.returncode}
+        try:
+            proc = subprocess.Popen(inline_cmd,
+                                    shell=use_shell,
+                                    stderr=subprocess.PIPE,
+                                    stdout=subprocess.PIPE,
+                                    env=environment)
+        except OSError:
+            # Argument list may have been too long, so don't use a shell
+            proc = subprocess.Popen(inline_cmd,
+                                    stderr=subprocess.PIPE,
+                                    stdout=subprocess.PIPE,
+                                    env=environment)
+        retvals = proc.communicate()
+        return {"stdout": retvals[0],
+                "stderr": retvals[1],
+                "returncode": proc.returncode}
 
     def has_error(self, method_name, inputs, cmd, retvals):
         if self.debug:
@@ -171,7 +177,7 @@ class Nco(object):
                 for option in options:
                     if isinstance(option, six.string_types):
                         cmd.extend(shlex.split(option))
-                    elif isinstance(option, custom.Atted):
+                    elif isinstance(option, Atted):
                         cmd.extend(option.prn_option().split())
                     else:
                         # assume it's an iterable
@@ -499,12 +505,3 @@ def auto_doc(tool, nco_self):
             func.__doc__ = None
         return func
     return desc
-
-
-def which(pgm):
-    path = os.getenv('PATH')
-    for p in path.split(os.path.pathsep):
-        p = os.path.join(p, pgm)
-        if os.path.exists(p) and os.access(p, os.X_OK):
-            return p
-    return None
