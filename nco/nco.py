@@ -281,7 +281,8 @@ class Nco(object):
                     file_name_prefix = nco_command + "_" + input_file.split(os.sep)[-1]
                     tmp_file = tempfile.NamedTemporaryFile(mode='w+b',
                                                            prefix=file_name_prefix,
-                                                           suffix=".tmp")
+                                                           suffix=".tmp",
+                                                           delete=False)
                     output = tmp_file.name
                     cmd.append("--output={0}".format(output))
 
@@ -298,7 +299,7 @@ class Nco(object):
             if return_array:
                 return self.read_array(output, return_array)
             elif return_ma_array:
-                return self.readMaArray(output, return_ma_array)
+                return self.read_ma_array(output, return_ma_array)
             elif self.return_cdf or return_cdf:
                 if not self.return_cdf:
                     self.load_cdf_module()
@@ -441,7 +442,7 @@ class Nco(object):
             print("Cannot find variable: {0}".format(var_name))
             raise KeyError
 
-    def readMaArray(self, infile, var_name):
+    def read_ma_array(self, infile, var_name):
         """Create a masked array based on cdf's FillValue"""
         file_obj = self.read_cdf(infile)
 
