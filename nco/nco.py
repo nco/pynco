@@ -89,7 +89,7 @@ class Nco(object):
         res.extend(self.operators)
         return res
 
-    def call(self, cmd, inputs=None, environment=None):
+    def call(self, cmd, inputs=None, environment=None, use_shell=False):
 
         inline_cmd = cmd
         if inputs is not None:
@@ -107,27 +107,17 @@ class Nco(object):
             print('# DEBUG: CALL>> {0}'.format(' '.join(inline_cmd)))
             print('# DEBUG ==================================================')
 
-        # try:
-        #     proc = subprocess.Popen(' '.join(inline_cmd),
-        #                             shell=True,
-        #                             stderr=subprocess.PIPE,
-        #                             stdout=subprocess.PIPE,
-        #                             env=environment)
-        # except OSError:
-        #     # Argument list may have been too long, so don't use a shell
-        #     proc = subprocess.Popen(inline_cmd,
-        #                             stderr=subprocess.PIPE,
-        #                             stdout=subprocess.PIPE,
-        #                             env=environment)
-        # retvals = proc.communicate()
-        # return {"stdout": retvals[0],
-        #         "stderr": retvals[1],
-        #         "returncode": proc.returncode}
+        # if we're using the shell then we need to pass a single string as the command rather than in iterable
+        if use_shell:
+            inline_cmd = ' '.join(inline_cmd)
 
+        # run the command
         response = subprocess.run(inline_cmd,
                                   stderr=subprocess.PIPE,
                                   stdout=subprocess.PIPE,
+                                  shell=use_shell,
                                   env=environment)
+
         return {"stdout": response.stdout,
                 "stderr": response.stderr,
                 "returncode": response.returncode}
@@ -150,11 +140,18 @@ class Nco(object):
         if nco_command not in self.operators:
             raise AttributeError("Unknown command: {cmd}".format(cmd=nco_command))
 
-        # run the auto_doc decorator, which runs the command with --help option, in order to pull in usage info
+        # first run the auto_doc decorator, which runs the command with --help option, in order to pull in usage info
         @auto_doc(nco_command, self)
-        # define the function that's called when this magic function runs
-        # parse options and construct/call corresponding NCO command
         def get(self, input_file, **kwargs):
+            """
+            This is the function that's called when this __getattr__ "magic" function runs.
+            Parses options and constructs/calls an appropriate/corresponding NCO command.
+
+            :param self:
+            :param input_file:
+            :param kwargs:
+            :return:
+            """
             options = kwargs.pop('options', [])
             force = kwargs.pop("force", self.force_output)
             output = kwargs.pop("output", None)
@@ -163,7 +160,8 @@ class Nco(object):
             return_cdf = kwargs.pop("return_cdf", False)
             return_array = kwargs.pop("return_array", False)
             return_ma_array = kwargs.pop("return_ma_array", False)
-            operator_prints_out = kwargs.pop("operatorPrintsOut", False)
+            operator_prints_out = kwargs.pop("operator_prints_out", False)
+            use_shell = kwargs.pop("use_shell", False)
 
             # build the NCO command
             # 1. the NCO operator
@@ -286,7 +284,7 @@ class Nco(object):
                     output = tmp_file.name
                     cmd.append("--output={0}".format(output))
 
-                retvals = self.call(cmd, inputs=input_file, environment=environment)
+                retvals = self.call(cmd, inputs=input_file, environment=environment, use_shell=use_shell)
                 self.returncode = retvals["returncode"]
                 self.stdout = retvals["stdout"]
                 self.stderr = retvals["stderr"]
@@ -308,7 +306,7 @@ class Nco(object):
                 return output
 
         if (nco_command in self.__dict__) or \
-           (nco_command in self.operators):
+                (nco_command in self.operators):
             if self.debug:
                 print("Found method: {0}".format(nco_command))
             # cache the method for later
@@ -360,7 +358,6 @@ class Nco(object):
         if self.has_nco():
             call = [os.path.join(self.nco_path, 'ncra'), '--version']
             proc = subprocess.Popen(' '.join(call),
-                                    shell=True,
                                     stderr=subprocess.PIPE,
                                     stdout=subprocess.PIPE)
             retvals = proc.communicate()

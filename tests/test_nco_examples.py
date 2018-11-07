@@ -144,8 +144,8 @@ def test_specifying_input_files(testfiles8589):
     nco.ncra(input_file=basenames, output='8589.nc', path=srcdir)
 
     # unable to use brackets, perhaps because we're no longer using shell=True when calling subprocess()?
-    # regpath = os.path.join(srcdir, '8[56789].nc')
-    # nco.ncra(input_file="f\"" + regpath + "\"", output='8589.nc')
+    regpath = os.path.join(srcdir, '8[56789].nc')
+    nco.ncra(input_file=regpath, output='8589.nc', use_shell=True)
 
 
 def test_determining_file_format(foo3c, foo364, foo4c, hdf_file):
