@@ -29,7 +29,8 @@ import tempfile
 from distutils.version import LooseVersion
 import six
 
-from nco.custom import Atted
+from .custom import Atted
+
 
 class NCOException(Exception):
     def __init__(self, stdout, stderr, returncode):
@@ -44,12 +45,10 @@ class NCOException(Exception):
 
 
 class Nco(object):
-    def __init__(self, return_cdf=False, return_none_on_error=False,
+    def __init__(self, returnCdf=False, return_none_on_error=False,
                  force_output=True, cdf_module='netcdf4', debug=0, **kwargs):
 
-        operators = ['ncap2', 'ncatted', 'ncbo', 'nces', 'ncecat', 'ncflint',
-                     'ncks', 'ncpdq', 'ncra', 'ncrcat', 'ncrename', 'ncwa',
-                     'ncea', 'ncdump']
+        operators = ['ncap2', 'ncatted', 'ncbo', 'nces', 'ncecat', 'ncflint', 'ncks', 'ncpdq', 'ncra', 'ncrcat', 'ncrename', 'ncwa', 'ncea']
 
         if 'NCOpath' in os.environ:
             self.nco_path = os.environ['NCOpath']
@@ -57,7 +56,7 @@ class Nco(object):
             self.nco_path = os.path.split(distutils.spawn.find_executable('ncks'))[0]
 
         self.operators = operators
-        self.return_cdf = return_cdf
+        self.return_cdf = returnCdf
         self.return_none_on_error = return_none_on_error
         self.tempfile = MyTempfile()
         self.force_output = force_output
@@ -148,13 +147,13 @@ class Nco(object):
 
         # first run the auto_doc decorator, which runs the command with --help option, in order to pull in usage info
         @auto_doc(nco_command, self)
-        def get(self, input_file, **kwargs):
+        def get(self, input, **kwargs):
             """
             This is the function that's called when this __getattr__ "magic" function runs.
             Parses options and constructs/calls an appropriate/corresponding NCO command.
 
             :param self:
-            :param input_file:
+            :param input:
             :param kwargs:
             :return:
             """
@@ -163,9 +162,9 @@ class Nco(object):
             output = kwargs.pop("output", None)
             environment = kwargs.pop("env", None)
             debug = kwargs.pop("debug", self.debug)
-            return_cdf = kwargs.pop("return_cdf", False)
-            return_array = kwargs.pop("return_array", False)
-            return_ma_array = kwargs.pop("return_ma_array", False)
+            return_cdf = kwargs.pop("returnCdf", False)
+            return_array = kwargs.pop("returnArray", False)
+            return_ma_array = kwargs.pop("returnMaArray", False)
             operator_prints_out = kwargs.pop("operator_prints_out", False)
             use_shell = kwargs.pop("use_shell", False)
 
@@ -244,19 +243,19 @@ class Nco(object):
                 nco_version = self.version()
                 if LooseVersion(nco_version) >= LooseVersion('4.3.7'):
                     self.outputOperatorsPattern = [
-                        'ncdump', '-r', '--revision', '--vrs', '--version']
+                        '-r', '--revision', '--vrs', '--version']
 
             # Check if operator prints out
             for piece in cmd:
-                if (piece in self.outputOperatorsPattern) or (nco_command == 'ncdump'):
+                if piece in self.outputOperatorsPattern:
                     operator_prints_out = True
 
             if operator_prints_out:
-                retvals = self.call(cmd, inputs=input_file)
+                retvals = self.call(cmd, inputs=input)
                 self.returncode = retvals["returncode"]
                 self.stdout = retvals["stdout"]
                 self.stderr = retvals["stderr"]
-                if not self.has_error(nco_command, input_file, cmd, retvals):
+                if not self.has_error(nco_command, input, cmd, retvals):
                     return retvals["stdout"]
                     # parsing can be done by 3rd party
                 else:
@@ -282,7 +281,7 @@ class Nco(object):
                 else:
 
                     # create a temporary file, use this as the output
-                    file_name_prefix = nco_command + "_" + input_file.split(os.sep)[-1]
+                    file_name_prefix = nco_command + "_" + input.split(os.sep)[-1]
                     tmp_file = tempfile.NamedTemporaryFile(mode='w+b',
                                                            prefix=file_name_prefix,
                                                            suffix=".tmp",
@@ -290,11 +289,11 @@ class Nco(object):
                     output = tmp_file.name
                     cmd.append("--output={0}".format(output))
 
-                retvals = self.call(cmd, inputs=input_file, environment=environment, use_shell=use_shell)
+                retvals = self.call(cmd, inputs=input, environment=environment, use_shell=use_shell)
                 self.returncode = retvals["returncode"]
                 self.stdout = retvals["stdout"]
                 self.stderr = retvals["stderr"]
-                if self.has_error(nco_command, input_file, cmd, retvals):
+                if self.has_error(nco_command, input, cmd, retvals):
                     if self.return_none_on_error:
                         return None
                     else:
@@ -344,7 +343,7 @@ class Nco(object):
                              "values are 'scipy' and 'netcdf4'")
 
     def set_return_array(self, value=True):
-        self.return_cdf = value
+        self.returnCdf = value
         if value:
             self.load_cdf_module()
 
@@ -496,12 +495,16 @@ class MyTempfile(object):
 
 
 def auto_doc(tool, nco_self):
-    """Generate the __doc__ string of the decorated function by
-    calling the nco help command"""
+    """
+    Generate the __doc__ string of the decorated function by calling the nco help command
+
+    :param tool:
+    :param nco_self:
+    :return:
+    """
     def desc(func):
-        if tool != 'ncdump':
-            func.__doc__ = nco_self.call([tool, '--help']).get('stdout')
-        else:
-            func.__doc__ = None
+
+        func.__doc__ = nco_self.call([tool, '--help']).get('stdout')
         return func
+
     return desc
