@@ -15,91 +15,94 @@ import numpy as np
 DEBUG = 1
 
 # valid values for rename type
-RENAME_TYPES = dict({
-    'attribute': 'a',
-    'dimension': 'd',
-    'group': 'g',
-    'variable': 'v'
-})
+RENAME_TYPES = dict({"attribute": "a", "dimension": "d", "group": "g", "variable": "v"})
 
 # check mode
-VALID_MODES = dict({
-    'create': 'c',
-    'delete': 'd',
-    'modify': 'm',
-    'append': 'a',
-    'nappend': 'n',
-    'overwrite': 'o'
-})
+VALID_MODES = dict(
+    {
+        "create": "c",
+        "delete": "d",
+        "modify": "m",
+        "append": "a",
+        "nappend": "n",
+        "overwrite": "o",
+    }
+)
 
 # netCDF type names
-NET_TYPES = dict({
-    'NC_FLOAT': 'f',
-    'NC_DOUBLE': 'd',
-    'NC_INT': 'i',
-    'NC_SHORT': 's',
-    'NC_CHAR': 'c',
-    'NC_BYTE': 'b',
-    'NC_UBYTE': 'ub',
-    'NC_USHORT': 'us',
-    'NC_UINT': 'ui',
-    'NC_INT64': 'll',
-    'NC_UINT64': 'ull',
-    'NC_STRING': 'sng'
-})
+NET_TYPES = dict(
+    {
+        "NC_FLOAT": "f",
+        "NC_DOUBLE": "d",
+        "NC_INT": "i",
+        "NC_SHORT": "s",
+        "NC_CHAR": "c",
+        "NC_BYTE": "b",
+        "NC_UBYTE": "ub",
+        "NC_USHORT": "us",
+        "NC_UINT": "ui",
+        "NC_INT64": "ll",
+        "NC_UINT64": "ull",
+        "NC_STRING": "sng",
+    }
+)
 
 # numpy type names
-NP_TYPES = dict({
-    'float32': 'f',
-    'float64': 'd',
-    'int32': 'i',
-    'int16': 's',
-    'char': 'c',
-    'byte': 'b',
-    'ubyte': 'ub',
-    'int8': 'b',
-    'uint8': 'ub',
-    'uint16': 'us',
-    'uint32': 'ui',
-    'int64': 'll',
-    'uint64': 'ull',
-    'string': 'sng'
-})
+NP_TYPES = dict(
+    {
+        "float32": "f",
+        "float64": "d",
+        "int32": "i",
+        "int16": "s",
+        "char": "c",
+        "byte": "b",
+        "ubyte": "ub",
+        "int8": "b",
+        "uint8": "ub",
+        "uint16": "us",
+        "uint32": "ui",
+        "int64": "ll",
+        "uint64": "ull",
+        "string": "sng",
+    }
+)
 
-NP_TYPESNP = dict({
-    'float32': np.float32,
-    'float': np.float32,
-    'f': np.float32,
-    'float64': np.float64,
-    'double': np.float64,
-    'd': np.float64,
-    'int32': np.int32,
-    'i': np.int32,
-    'l': np.int32,
-    'int16': np.int16,
-    's': np.int16,
-    'str': str,
-    'char': str,
-    'c': str,
-    'string': str,
-    'sng': str,
-    'byte': np.byte,
-    'b': np.byte,
-    'ubyte': np.ubyte,
-    'ub': np.ubyte,
-    'int8': np.byte,
-    'uint8': np.ubyte,
-    'uint16': np.uint16,
-    'us': np.uint16,
-    'uint32': np.uint32,
-    'u': np.uint32,
-    'ui': np.uint32,
-    'ul': np.uint32,
-    'int64': np.int64,
-    'll': np.int64,
-    'uint64': np.uint64,
-    'ull': np.uint64
-})
+NP_TYPESNP = dict(
+    {
+        "float32": np.float32,
+        "float": np.float32,
+        "f": np.float32,
+        "float64": np.float64,
+        "double": np.float64,
+        "d": np.float64,
+        "int32": np.int32,
+        "i": np.int32,
+        "l": np.int32,
+        "int16": np.int16,
+        "s": np.int16,
+        "str": str,
+        "char": str,
+        "c": str,
+        "string": str,
+        "sng": str,
+        "byte": np.byte,
+        "b": np.byte,
+        "ubyte": np.ubyte,
+        "ub": np.ubyte,
+        "int8": np.byte,
+        "uint8": np.ubyte,
+        "uint16": np.uint16,
+        "us": np.uint16,
+        "uint32": np.uint32,
+        "u": np.uint32,
+        "ui": np.uint32,
+        "ul": np.uint32,
+        "int64": np.int64,
+        "ll": np.int64,
+        "uint64": np.uint64,
+        "ull": np.uint64,
+    }
+)
 
 __prog__ = os.path.splitext(os.path.basename(__file__))[0]
 
@@ -114,13 +117,20 @@ class Atted(object):
      att_typ = f,d,l/i,s,c,b,ub,us,u,ll,ull,sng
      """
 
-    def __init__(self, mode='overwrite', att_name="", var_name="", value=None,
-                 stype=None, **kwargs):
-        mode = kwargs.pop('mode', mode)
-        att_name = kwargs.pop('att_name', att_name)
-        var_name = kwargs.pop('var_name', var_name)
-        value = kwargs.pop('value', value)
-        stype = kwargs.pop('stype', stype)
+    def __init__(
+        self,
+        mode="overwrite",
+        att_name="",
+        var_name="",
+        value=None,
+        stype=None,
+        **kwargs
+    ):
+        mode = kwargs.pop("mode", mode)
+        att_name = kwargs.pop("att_name", att_name)
+        var_name = kwargs.pop("var_name", var_name)
+        value = kwargs.pop("value", value)
+        stype = kwargs.pop("stype", stype)
 
         if mode in VALID_MODES:
             mode = VALID_MODES[mode]
@@ -130,7 +140,7 @@ class Atted(object):
             raise KeyError('mode "{0}" not found'.format(mode))
 
         if not att_name:
-            raise ValueError('att_name is required')
+            raise ValueError("att_name is required")
 
         # set member defaults
         self.mode = mode
@@ -148,7 +158,7 @@ class Atted(object):
         # string the the output type should be 'sng and NOT 'c'. To do this we
         # put the single string inside a list the the prnOptions() method
         # treats it as it would a list of strings
-        if isinstance(value, str) and stype in ['string', 'sng']:
+        if isinstance(value, str) and stype in ["string", "sng"]:
             value = [value]
 
         # see if value is iterable
@@ -167,8 +177,10 @@ class Atted(object):
             try:
                 np_type = NP_TYPESNP[stype]
             except:
-                raise KeyError('specified Type "{0}" not found.\nValid '
-                               'values {1}\n'.format(stype, NP_TYPES.keys()))
+                raise KeyError(
+                    'specified Type "{0}" not found.\nValid '
+                    "values {1}\n".format(stype, NP_TYPES.keys())
+                )
         # set default types
         else:
             if input_type is int:
@@ -185,7 +197,8 @@ class Atted(object):
                 except KeyError:
                     raise KeyError(
                         'The type of value "{0}" is NOT valid\nValid '
-                        'values {1}\n'.format(input_type, NP_TYPES.keys()))
+                        "values {1}\n".format(input_type, NP_TYPES.keys())
+                    )
 
         if biterable:
             if np_type is str:
@@ -195,7 +208,7 @@ class Atted(object):
                 # get max string length
                 lenMax = len(max(sList, key=len))
                 # create array of 'fixed' length strings
-                np_value = np.array(sList, 'S{0}'.format(lenMax))
+                np_value = np.array(sList, "S{0}".format(lenMax))
             else:
                 # create array from iterable all in one go !!
                 np_value = np.fromiter(value, np_type)
@@ -207,17 +220,21 @@ class Atted(object):
             self.np_value = np_value
 
     def __str__(self):
-        return ('mode="{0}" att_name="{1}" var_name="{2} value="{3}" '
-                'type="{4}"\n'.format(self.mode, self.att_name, self.var_name,
-                                      self.np_value, self.np_type))
+        return (
+            'mode="{0}" att_name="{1}" var_name="{2} value="{3}" '
+            'type="{4}"\n'.format(
+                self.mode, self.att_name, self.var_name, self.np_value, self.np_type
+            )
+        )
 
     def prn_option(self):
 
         # modeChar=VALID_MODES[self.mode]
         # deal with delete - nb doesnt need any data
-        if self.mode == 'd':
-            return ('-a "{0}","{1}",{2},,'.
-                    format(self.att_name, self.var_name, self.mode))
+        if self.mode == "d":
+            return '-a "{0}","{1}",{2},,'.format(
+                self.att_name, self.var_name, self.mode
+            )
 
         bList = isinstance(self.np_value, (list, np.ndarray))
 
@@ -244,11 +261,9 @@ class Atted(object):
 
         strvalue = ",".join(strArray)
 
-        return '-a "{0}","{1}",{2},{3},{4}'.format(self.att_name,
-                                                   self.var_name,
-                                                   self.mode,
-                                                   type_char,
-                                                   strvalue)
+        return '-a "{0}","{1}",{2},{3},{4}'.format(
+            self.att_name, self.var_name, self.mode, type_char, strvalue
+        )
 
 
 class Limit(object):
@@ -261,14 +276,14 @@ class Limit(object):
 
     def __init__(self, dmn_name="", srt="", end="", srd="", drn="", **kwargs):
 
-        dmn_name = kwargs.pop('dmn_name', dmn_name)
-        srt = kwargs.pop('srt', srt)
-        end = kwargs.pop('end', end)
-        srd = kwargs.pop('srd', srd)
-        drn = kwargs.pop('drn', drn)
+        dmn_name = kwargs.pop("dmn_name", dmn_name)
+        srt = kwargs.pop("srt", srt)
+        end = kwargs.pop("end", end)
+        srd = kwargs.pop("srd", srd)
+        drn = kwargs.pop("drn", drn)
 
         if not dmn_name:
-            raise ValueError('dmn_name is required')
+            raise ValueError("dmn_name is required")
 
         self.dmn_name = dmn_name
         # set rest of defaults
@@ -297,8 +312,9 @@ class Limit(object):
             self.drn = np.dtype(np.int64).type(drn)
 
     def __str__(self):
-        return ("dmn_name={} srt={} end={} srd={} drn={}".
-                format(self.dmn_name, self.srt, self.end, self.srd, self.drn))
+        return "dmn_name={} srt={} end={} srd={} drn={}".format(
+            self.dmn_name, self.srt, self.end, self.srd, self.drn
+        )
 
     def prn_option(self):
         bstr = '-d "{0}",{1},{2}'.format(self.dmn_name, self.srt, self.end)

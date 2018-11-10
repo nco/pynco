@@ -35,10 +35,10 @@ def test_ncks_hdf2nc(hdf_file):
     ncks --hdf4 fl.hdf fl.nc # Convert HDF4->netCDF4 (NCO 4.3.7-4.3.9)
     """
     if hdf_file is None:
-        pytest.skip('Skipped because h5py is not installed')
+        pytest.skip("Skipped because h5py is not installed")
     nco = Nco(debug=True)
-    nco.ncks(input=hdf_file, output='foo.nc')
-    nco.ncks(input=hdf_file, output='foo.nc', hdf4=True)
+    nco.ncks(input=hdf_file, output="foo.nc")
+    nco.ncks(input=hdf_file, output="foo.nc", hdf4=True)
 
 
 def test_ncks_hdf2nc3(hdf_file):
@@ -54,12 +54,12 @@ def test_ncks_hdf2nc3(hdf_file):
     ncks --hdf4 -7 fl.hdf fl.nc # HDF4->netCDF4 classic (netCDF 4.3.0-)
     """
     if hdf_file is None:
-        pytest.skip('Skipped because h5py is not installed')
+        pytest.skip("Skipped because h5py is not installed")
     nco = Nco(debug=True)
-    nco.ncks(input=hdf_file, output='foo.nc', options=['-3'])
-    nco.ncks(input=hdf_file, output='foo.nc', options=['-7 -L 1'])
-    nco.ncks(input=hdf_file, output='foo.nc', options=['-3'], hdf4=True)
-    nco.ncks(input=hdf_file, output='foo.nc', options=['-7'], hdf4=True)
+    nco.ncks(input=hdf_file, output="foo.nc", options=["-3"])
+    nco.ncks(input=hdf_file, output="foo.nc", options=["-7 -L 1"])
+    nco.ncks(input=hdf_file, output="foo.nc", options=["-3"], hdf4=True)
+    nco.ncks(input=hdf_file, output="foo.nc", options=["-7"], hdf4=True)
 
 
 def test_temp_output_files(foo_nc):
@@ -73,9 +73,9 @@ def test_temp_output_files(foo_nc):
     ncks --open_ram --no_tmp_fl in.nc in.nc # Read into RAM, write to disk
     """
     nco = Nco(debug=True)
-    nco.ncks(input=foo_nc, output='bar.nc')
-    nco.ncks(input=foo_nc, output='bar.nc', wrt_tmp_fl=True)
-    nco.ncks(input=foo_nc, output='bar.nc', no_tmp_fl=True)
+    nco.ncks(input=foo_nc, output="bar.nc")
+    nco.ncks(input=foo_nc, output="bar.nc", wrt_tmp_fl=True)
+    nco.ncks(input=foo_nc, output="bar.nc", no_tmp_fl=True)
     nco.ncks(input=foo_nc, output=foo_nc, no_tmp_fl=True, create_ram=True)
     nco.ncks(input=foo_nc, output=foo_nc, no_tmp_fl=True, open_ram=True)
 
@@ -88,10 +88,11 @@ def test_ncks_append_variables(foo_nc, bar_nc):
     ncks -A fl_1.nc fl_2.nc
     """
     nco = Nco(debug=True)
-    nco.ncks(input=foo_nc, output=bar_nc, options=['-A'])
+    nco.ncks(input=foo_nc, output=bar_nc, options=["-A"])
     nco.ncks(input=foo_nc, output=bar_nc, append=True)
     nco.ncks(input=foo_nc, output=bar_nc, apn=True)
     nco.ncks(input=foo_nc, output=bar_nc)
+
 
 # def test_add_record_dimension():
 #     """
@@ -120,9 +121,9 @@ def test_command_line_options(foo_nc):
     ncks --dbg_lvl 3 in.nc # Long option, alternate form
     """
     nco = Nco(debug=True)
-    nco.ncks(input=foo_nc, options=['-O -D 3'])
-    nco.ncks(input=foo_nc, options=['-O --dbg_lvl=3'])
-    nco.ncks(input=foo_nc, options=['-O --dbg_lvl 3'])
+    nco.ncks(input=foo_nc, options=["-O -D 3"])
+    nco.ncks(input=foo_nc, options=["-O --dbg_lvl=3"])
+    nco.ncks(input=foo_nc, options=["-O --dbg_lvl 3"])
     # nco.ncks(input=foo_nc, dbg_lvl=3)
 
 
@@ -136,16 +137,16 @@ def test_specifying_input_files(testfiles8589):
     ncra -n 5,2,1 85.nc 8589.nc
     """
     nco = Nco(debug=True)
-    nco.ncra(input=testfiles8589, output='8589.nc')
-    nco.ncra(input=testfiles8589, output='8589.nc', nintap='5,2,1')
+    nco.ncra(input=testfiles8589, output="8589.nc")
+    nco.ncra(input=testfiles8589, output="8589.nc", nintap="5,2,1")
 
     srcdir = os.path.dirname(testfiles8589[0])
     basenames = [os.path.basename(x) for x in testfiles8589]
-    nco.ncra(input=basenames, output='8589.nc', path=srcdir)
+    nco.ncra(input=basenames, output="8589.nc", path=srcdir)
 
     # unable to use brackets, perhaps because we're no longer using shell=True when calling subprocess()?
-    regpath = os.path.join(srcdir, '8[56789].nc')
-    nco.ncra(input=regpath, output='8589.nc', use_shell=True)
+    regpath = os.path.join(srcdir, "8[56789].nc")
+    nco.ncra(input=regpath, output="8589.nc", use_shell=True)
 
 
 def test_determining_file_format(foo3c, foo364, foo4c, hdf_file):
@@ -161,14 +162,14 @@ def test_determining_file_format(foo3c, foo364, foo4c, hdf_file):
     ncks -D 2 -M foo_4.nc
     """
     nco = Nco(debug=True)
-    nco.ncks(input=foo3c, options=['-M'])
-    nco.ncks(input=foo364, options=['-M'])
-    nco.ncks(input=foo4c, options=['-M'])
-    nco.ncks(input=foo4c, options=['-D 2 -M'])
+    nco.ncks(input=foo3c, options=["-M"])
+    nco.ncks(input=foo364, options=["-M"])
+    nco.ncks(input=foo4c, options=["-M"])
+    nco.ncks(input=foo4c, options=["-D 2 -M"])
 
     if hdf_file is not None:
         assert os.path.isfile(hdf_file)
-        nco.ncks(input=hdf_file, options=['-D 2 -M'])
+        nco.ncks(input=hdf_file, options=["-D 2 -M"])
     # nco.ncks(input='http://thredds-test.ucar.edu/thredds/dodsC/testdods/in.nc',
     #          options=['-D 2', '-M']) # does not work from command line either
 
@@ -191,18 +192,18 @@ def test_file_conversion(foo3c, foo4c):
     ncks --7 in.nc foo_4c.nc # netCDF4 classic
     """
     nco = Nco(debug=True)
-    nco.ncks(input=foo4c, output='foo_3c.nc', fl_fmt='classic')
-    nco.ncks(input=foo4c, output='foo_364.nc', fl_fmt='64bit')
-    nco.ncks(input=foo3c, output='foo_4c.nc', fl_fmt='netcdf4_classic')
-    nco.ncks(input=foo3c, output='foo_4.nc', fl_fmt='netcdf4')
-    nco.ncks(input=foo4c, output='foo_3c.nc', options=['-3'])
-    nco.ncks(input=foo4c, output='foo_3c.nc', options=['--3'])
-    nco.ncks(input=foo3c, output='foo_364c.nc', options=['-6'])
-    nco.ncks(input=foo3c, output='foo_364c.nc', options=['--64bit_offset'])
-    nco.ncks(input=foo3c, output='foo_4.nc', options=['-4'])
-    nco.ncks(input=foo3c, output='foo_4.nc', options=['--4'])
-    nco.ncks(input=foo3c, output='foo_4c.nc', options=['-7'])
-    nco.ncks(input=foo3c, output='foo_4c.nc', options=['--7'])
+    nco.ncks(input=foo4c, output="foo_3c.nc", fl_fmt="classic")
+    nco.ncks(input=foo4c, output="foo_364.nc", fl_fmt="64bit")
+    nco.ncks(input=foo3c, output="foo_4c.nc", fl_fmt="netcdf4_classic")
+    nco.ncks(input=foo3c, output="foo_4.nc", fl_fmt="netcdf4")
+    nco.ncks(input=foo4c, output="foo_3c.nc", options=["-3"])
+    nco.ncks(input=foo4c, output="foo_3c.nc", options=["--3"])
+    nco.ncks(input=foo3c, output="foo_364c.nc", options=["-6"])
+    nco.ncks(input=foo3c, output="foo_364c.nc", options=["--64bit_offset"])
+    nco.ncks(input=foo3c, output="foo_4.nc", options=["-4"])
+    nco.ncks(input=foo3c, output="foo_4.nc", options=["--4"])
+    nco.ncks(input=foo3c, output="foo_4c.nc", options=["-7"])
+    nco.ncks(input=foo3c, output="foo_4c.nc", options=["--7"])
 
 
 def test_hyperslabs(testfileglobal):
@@ -227,17 +228,14 @@ def test_hyperslabs(testfileglobal):
     ncks -F -d lon,-3, in.nc out.nc
     """
     nco = Nco(debug=True)
-    nco.ncks(input=testfileglobal, output='out.nc', fortran=True,
-             dimension='lon,1,2')
-    nco.ncks(input=testfileglobal, output='out.nc',
-             dimension='lon,1,2')
-    nco.ncks(input=testfileglobal, output='out.nc', fortran=True,
-             dimension='lon,1.0,2.0')
-    nco.ncks(input=testfileglobal, output='out.nc', fortran=True,
-             dimension='lon,0.0,90.0,2')
-    nco.ncks(input=testfileglobal, output='out.nc', fortran=True,
-             dimension='lon,1,-2')
-    nco.ncks(input=testfileglobal, output='out.nc', fortran=True,
-             dimension='lon,-3,-1')
-    nco.ncks(input=testfileglobal, output='out.nc', fortran=True,
-             dimension='lon,-3')
+    nco.ncks(input=testfileglobal, output="out.nc", fortran=True, dimension="lon,1,2")
+    nco.ncks(input=testfileglobal, output="out.nc", dimension="lon,1,2")
+    nco.ncks(
+        input=testfileglobal, output="out.nc", fortran=True, dimension="lon,1.0,2.0"
+    )
+    nco.ncks(
+        input=testfileglobal, output="out.nc", fortran=True, dimension="lon,0.0,90.0,2"
+    )
+    nco.ncks(input=testfileglobal, output="out.nc", fortran=True, dimension="lon,1,-2")
+    nco.ncks(input=testfileglobal, output="out.nc", fortran=True, dimension="lon,-3,-1")
+    nco.ncks(input=testfileglobal, output="out.nc", fortran=True, dimension="lon,-3")
