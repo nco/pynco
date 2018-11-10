@@ -79,12 +79,10 @@ class Nco(object):
         self.operators = operators
         self.return_cdf = returnCdf
         self.return_none_on_error = return_none_on_error
-        self.tempfile = MyTempfile()
         self.force_output = force_output
         self.cdf_module = cdf_module
         self.debug = debug
         self.outputOperatorsPattern = [
-            "ncdump",
             "-H",
             "--data",
             "--hieronymus",
@@ -333,12 +331,9 @@ class Nco(object):
                         # we assume it's an iterable.
                         if len(output) > 1:
                             raise TypeError(
-                                "Only one output allowed, \
-                                            must be string or 1 length \
-                                            iterable. Recieved output: {0} \
-                                            with a type of \
-                                            {1}".format(
-                                    output, type(output)
+                                "Only one output allowed, must be string or 1 length iterable. "
+                                "Recieved output: {out} with a type of {type}".format(
+                                    out=output, type=type(output)
                                 )
                             )
                         cmd.extend("--output={0}".format(output))
@@ -546,34 +541,6 @@ class Nco(object):
             retval = np.ma.array(data)
 
         return retval
-
-
-class MyTempfile(object):
-    """Helper module for easy temp file handling"""
-
-    __tempfiles = []
-
-    def __init__(self):
-        self.persistent_tempfile = False
-
-    def __del__(self):
-        # remove temporary files
-        for filename in self.__class__.__tempfiles:
-            if os.path.isfile(filename):
-                os.remove(filename)
-
-    def set_persistent_tempfiles(self, value):
-        self.persistent_tempfiles = value
-
-    def path(self):
-        if not self.persistent_tempfile:
-            t = tempfile.NamedTemporaryFile(
-                delete=True, prefix="nco.py_", suffix=".nco.tmp"
-            )
-            self.__class__.__tempfiles.append(t.name)
-            t.close()
-
-            return t.name
 
 
 def auto_doc(tool, nco_self):
