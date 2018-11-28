@@ -76,10 +76,11 @@ Now any NCO command (i.e. `ncks`, `ncra`, ...) can be called as a method of `nco
 * Optional arguments
 
     -  `output` - `str` or `list` of strings representing input netCDF filenames.  If not provided and operator returns a file (not an array or stdout text), the method will return a temporary file.
-    - `debug` - `bool` or `int`, if less than 0 or True, debug statements will be turned on for NCO and NCOpy (default: `False`)
+    -  `debug` - `bool` or `int`, if less than 0 or True, debug statements will be turned on for NCO and NCOpy (default: `False`)
     -  `returnCdf` - `bool`, return a netCDF file handle (default: `False`)
     -  `returnArray` - `str`. return a numpy array of variable name (default: `''`)
     -  `returnMaArray` - `str`. return a numpy masked array of variable name (default: `''`)
+    -  `use_shell` - `bool`. use shell to execute commands, useful if you need to pass wildcards or other characters in arguments that can be expanded by shell interpretor (default: `False`)
     -  `options` - `list`, NCO input options, for example `options=['-7', '-L 1']` (default: `[]`)
     -  `Atted` - a wrapper object to be used for ncatted. Atted objects can be included in the options list
     -  `Limit` - a wrapper object for the hyperslab (`-d`) command line option

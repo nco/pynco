@@ -1,1 +1,1 @@
-from .nco import Nco, NCOException, which
+from .nco import Nco, NCOException
