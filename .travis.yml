@@ -1,13 +1,20 @@
-language: python
+language: minimal
+sudo: false # use container based build
+notifications:
+  email: false
 
-python:
-  - 2.7
-  - 3.5
-  - 3.6
-
-env:
-  - NCO_VERSION=4.6.9
-  - NCO_VERSION=latest
+matrix:
+  fast_finish: true
+  include:
+  - env:
+    - CONDA_ENV=3.6
+    - NCO_VERSION=4.6.9
+  - env:
+    - CONDA_ENV=3.6
+    - NCO_VERSION=latest
+  - env:
+    - CONDA_ENV=3.7
+    - NCO_VERSION=latest
 
 before_install:
   # Install miniconda
@@ -30,7 +37,7 @@ before_install:
 
   # Create our environment
   # ------------------------------------
-  - conda env create --name test_env --quiet --file ci/requirements-$TRAVIS_PYTHON_VERSION.yml
+  - conda env create --name test_env --quiet --file ci/requirements-$CONDA_ENV.yml
   - source activate test_env
   - if [ "${NCO_VERSION}" == "latest" ];
     then conda install nco;

@@ -42,6 +42,6 @@ setup(
         "Operating System :: POSIX",
         "Programming Language :: Python",
     ],
-    install_requires=["six"],
+    python_requires='>=3.6',
     tests_require=["dateutil", "h5py", "netcdf4", "numpy", "pytest", "scipy"],
 )

@@ -27,7 +27,6 @@ import subprocess
 import tempfile
 
 from distutils.version import LooseVersion
-import six
 
 from .custom import Atted
 
@@ -128,7 +127,7 @@ class Nco(object):
 
         inline_cmd = cmd
         if inputs is not None:
-            if isinstance(inputs, six.string_types):
+            if isinstance(inputs, str):
                 inline_cmd.append(inputs)
             else:
                 # assume it's an iterable
@@ -220,7 +219,7 @@ class Nco(object):
 
             if options:
                 for option in options:
-                    if isinstance(option, six.string_types):
+                    if isinstance(option, str):
                         cmd.extend(shlex.split(option))
                     elif isinstance(option, Atted):
                         cmd.extend(option.prn_option().split())
@@ -259,7 +258,7 @@ class Nco(object):
                         if cmd[-1] in self.DontForcePattern:
                             force = False
                     elif (
-                        isinstance(val, six.string_types)
+                        isinstance(val, str)
                         or isinstance(val, int)
                         or isinstance(val, float)
                     ):
@@ -277,7 +276,7 @@ class Nco(object):
                 for key, val in list(self.options.items()):
                     if val and type(val) == bool:
                         cmd.append("--" + key)
-                    elif isinstance(val, six.string_types):
+                    elif isinstance(val, str):
                         cmd.append("--{0}={1}".format(key, val))
                     else:
                         # we assume it's either a list, a tuple or any iterable
@@ -325,7 +324,7 @@ class Nco(object):
                         raise NCOException(**retvals)
             else:
                 if output is not None:
-                    if isinstance(output, six.string_types):
+                    if isinstance(output, str):
                         cmd.append("--output={0}".format(output))
                     else:
                         # we assume it's an iterable.
@@ -460,10 +459,10 @@ class Nco(object):
         ncra_help = ret[1]
         if isinstance(ncra_help, bytes):
             ncra_help = ncra_help.decode("utf-8")
-        match = re.search("NCO netCDF Operators version (\d.*) ", ncra_help)
+        match = re.search(r"NCO netCDF Operators version (\d.*) ", ncra_help)
         # some versions write version information in quotation marks
         if not match:
-            match = re.search('NCO netCDF Operators version "(\d.*)" ', ncra_help)
+            match = re.search(r'NCO netCDF Operators version "(\d.*)" ', ncra_help)
         return match.group(1).split(" ")[0]
 
     def read_cdf(self, infile):
