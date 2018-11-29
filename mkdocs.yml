@@ -5,7 +5,7 @@ site_author: Joe Hamman
 repo_url: https://github.com/nco/pynco
 site_url: http://pynco.readthedocs.org/
 theme: readthedocs
-copyright: "Copyright: Joe Hamman, 2015"
+copyright: "Copyright: pynco developers, 2018"
 docs_dir: docs
 site_dir: site
 use_directory_urls: true
