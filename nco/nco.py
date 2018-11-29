@@ -459,10 +459,10 @@ class Nco(object):
         ncra_help = ret[1]
         if isinstance(ncra_help, bytes):
             ncra_help = ncra_help.decode("utf-8")
-        match = re.search("NCO netCDF Operators version (\d.*) ", ncra_help)
+        match = re.search(r"NCO netCDF Operators version (\d.*) ", ncra_help)
         # some versions write version information in quotation marks
         if not match:
-            match = re.search('NCO netCDF Operators version "(\d.*)" ', ncra_help)
+            match = re.search(r'NCO netCDF Operators version "(\d.*)" ', ncra_help)
         return match.group(1).split(" ")[0]
 
     def read_cdf(self, infile):
