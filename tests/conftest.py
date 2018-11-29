@@ -63,10 +63,9 @@ def hdf_file(random_field, tempsrcdir):
 
 
 @pytest.fixture(scope="module")
-def foo_nc(random_field):
+def foo_nc(random_field, tempsrcdir):
     """ a simple netCDF file with a random field"""
-    tempdir = tempsrcdir()
-    filename = os.path.join(tempdir, "foo.nc")
+    filename = os.path.join(tempsrcdir, "foo.nc")
     dataset = netCDF4.Dataset(filename, "w", format="NETCDF3_CLASSIC")
     shape = random_field.shape
     dataset.createDimension("dim0", shape[0])
@@ -82,10 +81,9 @@ def foo_nc(random_field):
 
 
 @pytest.fixture(scope="module")
-def bar_nc(random_field):
+def bar_nc(random_field, tempsrcdir):
     """ a simple netCDF file with a random field * 2"""
-    tempdir = tempsrcdir()
-    filename = os.path.join(tempdir, "bar.nc")
+    filename = os.path.join(tempsrcdir, "bar.nc")
     dataset = netCDF4.Dataset(filename, "w")
     shape = random_field.shape
     dataset.createDimension("dim0", shape[0])
@@ -101,10 +99,9 @@ def bar_nc(random_field):
 
 
 @pytest.fixture(scope="module")
-def bar_mask_nc(random_masked_field):
+def bar_mask_nc(random_masked_field, tempsrcdir):
     """ a simple netCDF file with a random field * 2"""
-    tempdir = tempsrcdir()
-    filename = os.path.join(tempdir, "bar.nc")
+    filename = os.path.join(tempsrcdir, "bar.nc")
     dataset = netCDF4.Dataset(filename, "w", format="NETCDF3_CLASSIC")
 
     shape = random_masked_field.shape
@@ -124,10 +121,9 @@ def bar_mask_nc(random_masked_field):
 def monthly_filelist(random_field, monthlydatetimelist, tempsrcdir):
     """Create a bunch of sample monthly netcdf files with real times"""
     file_list = []
-    tempdir = tempsrcdir()
     for date in monthlydatetimelist:
         filename = date.strftime(_DATESTR_FORMAT_MONTHLY)
-        filename = os.path.join(tempdir, filename)
+        filename = os.path.join(tempsrcdir, filename)
         dataset = netCDF4.Dataset(filename, "w")
         shape = random_field.shape
         dataset.createDimension("dim0", shape[0])
@@ -177,8 +173,7 @@ def testfile85(random_field, tempsrcdir):
         datetime.datetime(1985, 1, 1) + datetime.timedelta(days=d)
         for d in range(0, 365)
     ]
-    tempdir = tempsrcdir()
-    filename = os.path.join(tempdir, "85.nc")
+    filename = os.path.join(tempsrcdir, "85.nc")
     dataset = netCDF4.Dataset(filename, "w")
     shape = random_field.shape
     dataset.createDimension("dim0", shape[0])
