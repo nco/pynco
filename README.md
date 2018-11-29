@@ -17,7 +17,7 @@ This will install all required and optional dependencies and is the quickest and
 conda install -c conda-forge pynco
 ```
 
-### Pypi Installation
+### PyPI Installation
 
 Please see [the requirements](#requirements) before installing
 
@@ -39,8 +39,8 @@ python setup.py install
 **Mandatory**
 
 -  ***Platform***: Unix or Mac OS (Windows has not bee tested)
--  [NetCDF Operators (NCO)](http://nco.sourceforge.net/) - Version 4.2 or later. We don't test against every NCO version.
--  Python 2.7, 3.4, 3.5, or 3.6
+-  [NetCDF Operators (NCO)](http://nco.sourceforge.net/) - Version 4.6.9 or later. We don't test against every NCO version.
+-  Python 3.6 or 3.7
 
 **Recommended**
 
@@ -267,12 +267,10 @@ For usage questions, please use [Stack Overflow](https://stackoverflow.com/quest
 
 ## License
 
-`pynco` makes use of the GPLv2 License, see LICENSE.txt.
+`pynco` makes use of the MIT License, see LICENSE.txt.
 
 
 ## Other stuff
 
-* Author: [Joe Hamman](https://github.com/jhamman)
-* Requires: NCO version 4.2.x or newer, Python 2.6 or later
+* Requires: NCO version 4.6.9 or newer, Python 3.6 or later
 * Optional: scipy or Python netCDF4
-* License:  Copyright 2015 by Joe Hamman.  Released under GPLv2 license.  See the LICENSE file included in the distribution.
