@@ -5,13 +5,14 @@ import distutils.spawn
 import os
 import re
 import shlex
+# import six
 import subprocess
 import tempfile
 
 from distutils.version import LooseVersion
 
-from .custom import Atted
-
+# from .custom import Atted,Limit,LimitSingle,Rename
+# import custom
 
 class NCOException(Exception):
     def __init__(self, stdout, stderr, returncode):
@@ -85,6 +86,8 @@ class Nco(object):
         ]
         self.OverwriteOperatorsPattern = ["-O", "--ovr", "--overwrite"]
         self.AppendOperatorsPattern = ["-A", "--apn", "--append"]
+        # operators that can function with a single file
+        self.SingleFileOperatorsPattern = ["ncap2" , "ncatted", "ncks", "ncrename"]
         self.DontForcePattern = (
             self.outputOperatorsPattern
             + self.OverwriteOperatorsPattern
@@ -193,7 +196,7 @@ class Nco(object):
             return_array = kwargs.pop("returnArray", False)
             return_ma_array = kwargs.pop("returnMaArray", False)
             operator_prints_out = kwargs.pop("operator_prints_out", False)
-            use_shell = kwargs.pop("use_shell", False)
+            use_shell = kwargs.pop("use_shell", True)
 
             # build the NCO command
             # 1. the NCO operator
@@ -202,8 +205,9 @@ class Nco(object):
             if options:
                 for option in options:
                     if isinstance(option, str):
-                        cmd.extend(shlex.split(option))
-                    elif isinstance(option, Atted):
+                        cmd.extend(str.split(option))
+                    # elif isinstance(option, (custom.Atted, custom.Limit, custom.LimitSingle, custom.Rename)):
+                    elif hasattr(option,"prn_option"):
                         cmd.extend(option.prn_option().split())
                     else:
                         # assume it's an iterable
@@ -319,8 +323,7 @@ class Nco(object):
                             )
                         cmd.extend("--output={0}".format(output))
 
-                else:
-
+                elif not (nco_command in self.SingleFileOperatorsPattern):
                     # create a temporary file, use this as the output
                     file_name_prefix = nco_command + "_" + input.split(os.sep)[-1]
                     tmp_file = tempfile.NamedTemporaryFile(
@@ -339,6 +342,8 @@ class Nco(object):
                     if self.return_none_on_error:
                         return None
                     else:
+                        print(self.stdout)
+                        print(self.stderr)
                         raise NCOException(**retvals)
 
             if return_array:
