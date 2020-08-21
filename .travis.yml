@@ -8,9 +8,6 @@ matrix:
   include:
   - env:
     - CONDA_ENV=3.6
-    - NCO_VERSION=4.6.9
-  - env:
-    - CONDA_ENV=3.6
     - NCO_VERSION=latest
   - env:
     - CONDA_ENV=3.7
