@@ -11,8 +11,8 @@ import tempfile
 
 from distutils.version import LooseVersion
 
-# from .custom import Atted,Limit,LimitSingle,Rename
-import custom
+from .custom import Atted,Limit,LimitSingle,Rename
+# import nco.custom
 
 class NCOException(Exception):
     def __init__(self, stdout, stderr, returncode):
@@ -206,7 +206,8 @@ class Nco(object):
                 for option in options:
                     if isinstance(option, str):
                         cmd.extend(str.split(option))
-                    elif isinstance(option, (custom.Atted, custom.Limit, custom.LimitSingle, custom.Rename)):
+                    # elif isinstance(option, (custom.Atted, custom.Limit, custom.LimitSingle, custom.Rename)):
+                    elif isinstance(option, (Atted, Limit, LimitSingle, Rename)):
                         cmd.extend(option.prn_option().split())
                     else:
                         # assume it's an iterable
