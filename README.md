@@ -91,9 +91,6 @@ Now any NCO command (i.e. `ncks`, `ncra`, ...) can be called as a method of `nco
 
 *  File information:
 
-    ```python
-    ncdump_string = nco.ncdump(input=ifile)
-    ```
 
 *  Operators with user defined regular output files:
 
