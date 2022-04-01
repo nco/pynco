@@ -120,7 +120,7 @@ Now any NCO command (i.e. `ncks`, `ncra`, ...) can be called as a method of `nco
 
 * Wrapper Objects
 
-    The Atted opject is a convienent wrapper object to the `-a` command-line switch in ncatted.
+    The Atted object is a convienent wrapper object to the `-a` command-line switch in ncatted and can be imported from `nco.custom`
     The Limit object is a wrapper to the `-d` command-line switch.
     The Rename is a wrapper for the `-a,  -v, -d , -g ` switches in ncrename.
 
