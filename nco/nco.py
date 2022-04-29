@@ -168,12 +168,10 @@ class Nco(object):
 
     def __getattr__(self, nco_command):
 
-        # shortcut to avoid calling auto_doc decorator if command doesn't exist
+        # act normal if this is not an nco operator
         if nco_command not in self.operators:
-            raise AttributeError("Unknown command: {cmd}".format(cmd=nco_command))
+            raise AttributeError("Unknown operator: {0}".format(nco_command))
 
-        # first run the auto_doc decorator, which runs the command with
-        # --help option, in order to pull in usage info
         @auto_doc(nco_command, self)
         def get(self, input, **kwargs):
             """
@@ -219,10 +217,7 @@ class Nco(object):
                     cmd.append("--nco_dbg_lvl={0}".format(debug))
                 else:
                     raise TypeError(
-                        "Unknown type for debug: \
-                                    {0}".format(
-                            type(debug)
-                        )
+                        "Unknown type for debug: {0}".format(type(debug))
                     )
 
             if output and force and os.path.isfile(output):
@@ -361,17 +356,11 @@ class Nco(object):
             else:
                 return output
 
-        if (nco_command in self.__dict__) or (nco_command in self.operators):
-            if self.debug:
-                print("Found method: {0}".format(nco_command))
-            # cache the method for later
-            setattr(self.__class__, nco_command, get)
-            return get.__get__(self)
-        else:
-            # If the method isn't in our dictionary, act normal.
-            print("#=====================================================")
-            print("Cannot find method: {0}".format(nco_command))
-            raise AttributeError("Unknown method {0}!".format(nco_command))
+        # cache the method for later
+        if self.debug:
+            print("Found method: {0}".format(nco_command))
+        setattr(self.__class__, nco_command, get)
+        return get.__get__(self)
 
     def load_cdf_module(self):
         if self.cdf_module == "netcdf4":
@@ -536,16 +525,28 @@ class Nco(object):
 def auto_doc(tool, nco_self):
     """
     Generate the __doc__ string of the decorated function by
-    calling the nco help command.
+    retrieving the nco man page or help information.
 
     :param tool:
     :param nco_self:
     :return:
     """
+    def get_doc(cmd):
+        try:
+            return nco_self.call(cmd).get("stdout", b"").decode("utf-8")
+        except Exception:
+            return ""
 
-    def desc(func):
-
-        func.__doc__ = nco_self.call([tool, "--help"]).get("stdout")
+    def add_doc(func):
+        doc = get_doc(["man", tool])
+        if not doc:
+            doc = get_doc([tool, "--help"])
+        else:
+            m = re.search(r"(?<=\n\n)\S", doc)
+            if m:
+                doc = doc[m.start():]
+        func.__doc__ = doc
+        func.__name__ = tool
         return func
 
-    return desc
+    return add_doc
