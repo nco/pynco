@@ -120,15 +120,17 @@ Now any NCO command (i.e. `ncks`, `ncra`, ...) can be called as a method of `nco
 
 * Wrapper Objects
 
-    The Atted object is a convienent wrapper object to the `-a` command-line switch in ncatted and can be imported from `nco.custom`
-    The Limit object is a wrapper to the `-d` command-line switch.
-    The Rename is a wrapper for the `-a,  -v, -d , -g ` switches in ncrename.
+    Three convenient wrapper objects can be imported from `nco.custom`.
 
-    e.g  the following are equivalent:
+    - The `Atted` object is a convienent wrapper object to the `-a` command-line switch in ncatted.
+    - The `Limit` object is a wrapper to the `-d` command-line switch.
+    - The `Rename` is a wrapper for the `-a,  -v, -d , -g ` switches in ncrename.
+
+    For example, the following are equivalent:
 
     ```
+    nco.ncatted(input="in.nc",options=[Atted("overwrite","_FillValue","three_dmn",-9.91e+33,'d')])
     ncatted -a _FillValue,three_dmn,o,d,-9.91e+33 in.nc
-    nco.ncatted(input="in.nc",options=[c.atted("overwrite","_FillValue","three_dmn",-9.91e+33,'d')])
     ```
 
 ## Tempfile helpers
@@ -152,11 +154,14 @@ temperatures = nco.ncra(input=ifile, output=tempfile.mktemp(), returnArray='T')
 It is sometimes more tidy to define the atted objects in a separate list then add that list the options in the nco call
 
 ```python
+from nco import Nco
+from nco.custom import Atted
+nco = Nco()
 opt = [
-    c.Atted("o", "units", "temperature", "Kelvin"),
-    c.Atted("c", "min", "temperature", 0.16, 'd'),
-    c.Atted("m", "max", "temperature", 283.01, 'float64'),
-    c.Atted("c", "bnds", "time", [0.5, 1.5], 'f')
+    Atted("o", "units", "temperature", "Kelvin"),
+    Atted("c", "min", "temperature", 0.16, 'd'),
+    Atted("m", "max", "temperature", 283.01, 'float64'),
+    Atted("c", "bnds", "time", [0.5, 1.5], 'f')
 ]
 nco.ncatted(input="in.nc", options=opt)
 ```
@@ -164,11 +169,14 @@ nco.ncatted(input="in.nc", options=opt)
 You can also use keyword arguments in the call so the above options become
 
 ```python
+from nco import Nco
+from nco.custom import Atted
+nco = Nco()
 opt = [
-    c.Atted(mode="o", attName="units", varName="temperature", Value="Kelvin", sType="c"),
-    c.Atted(mode="create", attName="min", varName="temperature", Value=0.16, sType='d' ),
-    c.Atted(mode="modify", attName="max", varName="temperature", Value=283.01, sType='float64'),
-    c.Atted(mode="create", attName="bnds", varName="time", Value=[0.5, 1.5], sType='float32')
+    Atted(mode="o", attName="units", varName="temperature", Value="Kelvin", sType="c"),
+    Atted(mode="create", attName="min", varName="temperature", Value=0.16, sType='d' ),
+    Atted(mode="modify", attName="max", varName="temperature", Value=283.01, sType='float64'),
+    Atted(mode="create", attName="bnds", varName="time", Value=[0.5, 1.5], sType='float32')
 ]
 nco.ncatted(input="in.nc", options=opt)
 ```
@@ -206,12 +214,15 @@ ncks -d time,0,8,2 -d time,10 -d lat,-20.0,20.0 -d lon,50.0,350.0  -d lev,,,4
 **pynco**
 
 ```python
+from nco import Nco
+from nco.custom import Limit
+nco = Nco()
 opt = [
-    c.Limit("time", 0, 8, 2),
-    c.LimitSingle("time", 10),
-    c.Limit("lat", -20.0, 20.0),
-    c.Limit(dmn_name="lon", srt=50.0, end=350.0),
-    c.Limit(dmn_name="lev", srd=4)
+    Limit("time", 0, 8, 2),
+    LimitSingle("time", 10),
+    Limit("lat", -20.0, 20.0),
+    Limit(dmn_name="lon", srt=50.0, end=350.0),
+    Limit(dmn_name="lev", srd=4)
 ]
 
 nco.ncks(input="in.nc", output="out.nc", options=opt)
@@ -230,11 +241,14 @@ ncrename -v p,pressure -v t,temperature in.nc
 **`pynco`**
 
 ```python
+from nco import Nco
+from nco.custom import Rename
+nco = Nco()
 rDict = {
     'p': 'pressure',
     't': 'temperature'
 }
-nco.ncrename(input="in.nc", options=[ c.Rename("variable", rDict) ])
+nco.ncrename(input="in.nc", options=[ Rename("variable", rDict) ])
 ```
 
 Also equivalent:
@@ -248,11 +262,13 @@ ncrename -d lon,longitude -d lat,latitude -v lon,longitude -v lat,latitude in.nc
 **`pynco`**
 
 ```python
+from nco import Nco
+from nco.custom import Rename
 rDict = {
     'lon': 'longitude',
     'lat': 'latitude'
 }
-nco.ncrename(input="in.nc", options=[ c.Rename("d", rDict), c.Rename("v", rDict) ])
+nco.ncrename(input="in.nc", options=[ Rename("d", rDict), Rename("v", rDict) ])
 ```
 
 ## Support, Issues, Bugs, ...
