@@ -4,8 +4,6 @@ nco module.  Use Nco class as interface.
 import distutils.spawn
 import os
 import re
-import shlex
-import six
 import subprocess
 import tempfile
 
@@ -85,7 +83,7 @@ class Nco(object):
         self.OverwriteOperatorsPattern = ["-O", "--ovr", "--overwrite"]
         self.AppendOperatorsPattern = ["-A", "--apn", "--append"]
         # operators that can function with a single file
-        self.SingleFileOperatorsPattern = ["ncap2" , "ncatted", "ncks", "ncrename"]
+        self.SingleFileOperatorsPattern = ["ncap2", "ncatted", "ncks", "ncrename"]
         self.DontForcePattern = (
             self.outputOperatorsPattern
             + self.OverwriteOperatorsPattern
@@ -124,7 +122,8 @@ class Nco(object):
             print("# DEBUG: CALL>> {0}".format(" ".join(inline_cmd)))
             print("# DEBUG ==================================================")
 
-        # if we're using the shell then we need to pass a single string as the command rather than in iterable
+        # if we're using the shell then we need to pass a single string as the
+        # command rather than in iterable
         if use_shell:
             inline_cmd = " ".join(inline_cmd)
 
@@ -173,12 +172,14 @@ class Nco(object):
         if nco_command not in self.operators:
             raise AttributeError("Unknown command: {cmd}".format(cmd=nco_command))
 
-        # first run the auto_doc decorator, which runs the command with --help option, in order to pull in usage info
+        # first run the auto_doc decorator, which runs the command with
+        # --help option, in order to pull in usage info
         @auto_doc(nco_command, self)
         def get(self, input, **kwargs):
             """
-            This is the function that's called when this __getattr__ "magic" function runs.
-            Parses options and constructs/calls an appropriate/corresponding NCO command.
+            This is the function that's called when this __getattr__
+            "magic" function runs. Parses options and constructs/calls
+            an appropriate/corresponding NCO command.
 
             :param self:
             :param input:
@@ -204,7 +205,7 @@ class Nco(object):
                 for option in options:
                     if isinstance(option, str):
                         cmd.extend(str.split(option))
-                    elif hasattr(option,"prn_option"): 
+                    elif hasattr(option, "prn_option"):
                         cmd.extend(option.prn_option().split())
                     else:
                         # assume it's an iterable
@@ -313,8 +314,9 @@ class Nco(object):
                         # we assume it's an iterable.
                         if len(output) > 1:
                             raise TypeError(
-                                "Only one output allowed, must be string or 1 length iterable. "
-                                "Recieved output: {out} with a type of {type}".format(
+                                "Only one output allowed, must be string or 1 "
+                                "length iterable. Recieved output: {out} with "
+                                "a type of {type}".format(
                                     out=output, type=type(output)
                                 )
                             )
@@ -322,9 +324,14 @@ class Nco(object):
 
                 elif not (nco_command in self.SingleFileOperatorsPattern):
                     # create a temporary file, use this as the output
-                    file_name_prefix = nco_command + "_" + input.split(os.sep)[-1]
+                    file_name_prefix = (
+                        nco_command + "_" + input.split(os.sep)[-1]
+                    )
                     tmp_file = tempfile.NamedTemporaryFile(
-                        mode="w+b", prefix=file_name_prefix, suffix=".tmp", delete=False
+                        mode="w+b",
+                        prefix=file_name_prefix,
+                        suffix=".tmp",
+                        delete=False
                     )
                     output = tmp_file.name
                     cmd.append("--output={0}".format(output))
@@ -528,7 +535,8 @@ class Nco(object):
 
 def auto_doc(tool, nco_self):
     """
-    Generate the __doc__ string of the decorated function by calling the nco help command
+    Generate the __doc__ string of the decorated function by
+    calling the nco help command.
 
     :param tool:
     :param nco_self:
