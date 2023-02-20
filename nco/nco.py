@@ -107,43 +107,46 @@ class Nco(object):
 
     def call(self, cmd, inputs=None, environment=None, use_shell=False):
 
-        inline_cmd = cmd
+        cmd = list(cmd)
         if inputs is not None:
             if isinstance(inputs, str):
-                inline_cmd.append(inputs)
+                cmd.append(inputs)
             else:
                 # assume it's an iterable
-                inline_cmd.extend(inputs)
+                cmd.extend(inputs)
 
         if self.debug:
             print("# DEBUG ==================================================")
             if environment:
                 for key, val in list(environment.items()):
                     print("# DEBUG: ENV: {0} = {1}".format(key, val))
-            print("# DEBUG: CALL>> {0}".format(" ".join(map(shlex.quote, inline_cmd))))
+            print("# DEBUG: CALL>> {0}".format(" ".join(map(shlex.quote, cmd))))
             print("# DEBUG ==================================================")
 
         # if we're using the shell then we need to pass a single string as the
         # command rather than in iterable
         if use_shell:
-            inline_cmd = " ".join(inline_cmd)
+            shell_cmd = " ".join(map(shlex.quote, cmd))
+            try:
+                proc = subprocess.Popen(
+                    shell_cmd,
+                    shell=True,
+                    stderr=subprocess.PIPE,
+                    stdout=subprocess.PIPE,
+                    env=environment,
+                )
+            except OSError:
+                # Argument list may have been too long, so don't use a shell
+                use_shell = False
 
-        try:
+        if not use_shell:
             proc = subprocess.Popen(
-                inline_cmd,
-                shell=use_shell,
+                cmd,
                 stderr=subprocess.PIPE,
                 stdout=subprocess.PIPE,
                 env=environment,
             )
-        except OSError:
-            # Argument list may have been too long, so don't use a shell
-            proc = subprocess.Popen(
-                inline_cmd,
-                stderr=subprocess.PIPE,
-                stdout=subprocess.PIPE,
-                env=environment,
-            )
+
         retvals = proc.communicate()
         return {
             "stdout": retvals[0],
@@ -159,8 +162,10 @@ class Nco(object):
                 )
             )
         if retvals["returncode"] != 0:
-            print("Error in calling operator {method} with:".format(method=method_name))
-            print(">>> {command} <<<".format(command=" ".join(cmd)))
+            print("Error in calling operator {method} with:".format(
+                method=method_name))
+            print(">>> {command} <<<".format(
+                command=" ".join(map(shlex.quote, cmd))))
             print("Inputs: {0!s}".format(inputs))
             print(retvals["stderr"])
             return True
@@ -411,7 +416,7 @@ class Nco(object):
         if self.has_nco():
             call = [os.path.join(self.nco_path, "ncra"), "--version"]
             proc = subprocess.Popen(
-                " ".join(call), stderr=subprocess.PIPE, stdout=subprocess.PIPE
+                call, stderr=subprocess.PIPE, stdout=subprocess.PIPE
             )
             retvals = proc.communicate()
             print(retvals)
