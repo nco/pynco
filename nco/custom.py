@@ -232,9 +232,10 @@ class Atted(object):
         # modeChar=VALID_MODES[self.mode]
         # deal with delete - nb doesnt need any data
         if self.mode == "d":
-            return '-a "{0}","{1}",{2},,'.format(
-                self.att_name, self.var_name, self.mode
-            )
+            return [
+                '-a',
+                '{0},{1},{2},,'.format(self.att_name, self.var_name, self.mode),
+            ]
 
         bList = isinstance(self.np_value, (list, np.ndarray))
 
@@ -253,17 +254,15 @@ class Atted(object):
         if not bList:
             self.np_value = [self.np_value]
 
-        # if isinstance(self.np_type, str):
-        if self.np_type is str:
-            strArray = ['"' + str(v) + '"' for v in self.np_value]
-        else:
-            strArray = [str(v) for v in self.np_value]
-
+        strArray = [str(v) for v in self.np_value]
         strvalue = ",".join(strArray)
 
-        return '-a "{0}","{1}",{2},{3},{4}'.format(
-            self.att_name, self.var_name, self.mode, type_char, strvalue
-        )
+        return [
+            '-a',
+            '{0},{1},{2},{3},{4}'.format(
+                self.att_name, self.var_name, self.mode, type_char, strvalue
+            ),
+        ]
 
 
 class Limit(object):
@@ -317,18 +316,13 @@ class Limit(object):
         )
 
     def prn_option(self):
-        bstr = '-d "{0}",{1},{2}'.format(self.dmn_name, self.srt, self.end)
-
-        if self.drn != "":
-            estr = ",{0},{1}".format(self.srd, self.drn)
-        elif self.srd != "":
-            estr = ",{0}".format(self.srd)
-        else:
-            estr = ""
-
-        bstr += estr
-
-        return bstr
+        bits = [self.dmn_name, self.srt, self.end]
+        if self.drn != '':
+            bits.append(self.srd)
+            bits.append(self.drn)
+        elif self.srd != '':
+            bits.append(self.srd)
+        return ['-d', ",".join(map(str, bits))]
 
 
 class LimitSingle(Limit):
@@ -350,9 +344,7 @@ class LimitSingle(Limit):
         Override of the base method in Limit.
         This just prints the "srt" index
         """
-        bstr = '-d "{0}",{1}'.format(self.dmn_name, self.srt)
-
-        return bstr
+        return ['-d', '{0},{1}'.format(self.dmn_name, self.srt)]
 
 
 class Rename(object):
@@ -381,11 +373,12 @@ class Rename(object):
         self.rDict = rdict
 
     def prn_option(self):
+        options = []
 
-        lout = []
         for (sKey, Value) in self.rDict.items():
-            sf = '-{0} "{1}","{2}"'.format(self.rtype, sKey, Value)
-            lout.append(sf)
+            options.extend([
+                '-{0}'.format(self.rtype),
+                '{0},{1}'.format(sKey, Value),
+            ])
 
-        sout = " ".join(lout)
-        return sout
+        return options

@@ -4,15 +4,15 @@ Unit tests for nco.py.
 """
 import distutils.spawn
 import os
+from unittest.mock import MagicMock
 
-import numpy as np
 import netCDF4
-import scipy.io.netcdf
+import numpy as np
 import pytest
+import scipy.io.netcdf
 
-from nco import NCOException, Nco
+from nco import Nco, NCOException
 from nco.custom import Atted, Limit, LimitSingle, Rename
-
 
 ops = [
     "ncap2",
@@ -78,7 +78,7 @@ def test_use_list_inputs(foo_nc, bar_nc):
 def test_use_list_options(foo_nc):
     nco = Nco(debug=True)
     options = []
-    options.extend(["-a", 'units,time,o,c,"days since 1999-01-01"'])
+    options.extend(["-a 'units,time,o,c,days since 1999-01-01'"])
     options.extend(["-a", "long_name,time,o,c,time"])
     options.extend(["-a", "calendar,time,o,c,noleap"])
     nco.ncatted(input=foo_nc, output="out.nc", options=options)
@@ -279,6 +279,45 @@ def test_atted():
     )
     rename = Rename("g", renames)
     print(rename.prn_option())
+
+
+@pytest.mark.usefixtures("foo_nc")
+def test_ncatted_with_atted(foo_nc, tmp_path):
+    """
+    Test that ncatted works with names and values containing special
+    characters.
+    """
+    nco = Nco(debug=True)
+
+    output = str(tmp_path / 'out.nc')
+    nco.ncatted(input=foo_nc, output=output, options=[
+        Atted(
+            mode='create', var_name='random', att_name='attr',
+            value="some value with spaces"
+        ),
+        Atted(
+            mode='create', var_name='random', att_name='tricky "name"!',
+            value="the name is tricky here!"
+        ),
+        Atted(mode='delete', var_name='time', att_name='units'),
+        Atted(
+            mode='create', var_name='global', att_name='1 2 3',
+            value="one two three"
+        ),
+    ])
+
+    # Check that the attributes were added to the `random` variable
+    ds = netCDF4.Dataset(output)
+    random_variable = ds.variables['random']
+    assert random_variable.getncattr('attr') == 'some value with spaces'
+    assert random_variable.getncattr('tricky "name"!') == 'the name is tricky here!'
+
+    # Check that the `units` attribute on the `time` variable was removed
+    time_variable = ds.variables['time']
+    assert time_variable.ncattrs() == []
+
+    # Check that the dataset attribute was added
+    assert ds.getncattr('1 2 3') == 'one two three'
 
 
 def test_cdf_mod_scipy():
