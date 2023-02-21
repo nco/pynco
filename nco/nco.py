@@ -130,6 +130,7 @@ class Nco(object):
                 proc = subprocess.Popen(
                     shell_cmd,
                     shell=True,
+                    stdin=subprocess.DEVNULL,
                     stderr=subprocess.PIPE,
                     stdout=subprocess.PIPE,
                     env=environment,
@@ -141,6 +142,7 @@ class Nco(object):
         if not use_shell:
             proc = subprocess.Popen(
                 cmd,
+                stdin=subprocess.DEVNULL,
                 stderr=subprocess.PIPE,
                 stdout=subprocess.PIPE,
                 env=environment,

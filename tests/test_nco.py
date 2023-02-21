@@ -4,8 +4,6 @@ Unit tests for nco.py.
 import distutils.spawn
 import os
 import subprocess
-from functools import partial
-from unittest.mock import MagicMock, patch
 
 import netCDF4
 import numpy as np
