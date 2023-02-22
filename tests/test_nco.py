@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 """
 Unit tests for nco.py.
 """
