@@ -1,11 +1,10 @@
 channels:
   - conda-forge
 dependencies:
-  - python=3.6
+  - python=3.11
   - python-dateutil
   - h5py
   - netCDF4
   - numpy
   - pytest
   - scipy
-  - setuptools
