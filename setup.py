@@ -25,5 +25,8 @@ setup(
         "Programming Language :: Python",
     ],
     python_requires='>=3.7',
+    install_requires=[
+        "numpy",
+    ],
     tests_require=["dateutil", "h5py", "netcdf4", "numpy", "pytest", "scipy"],
 )
