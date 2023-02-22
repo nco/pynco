@@ -27,6 +27,7 @@ setup(
     python_requires='>=3.7',
     install_requires=[
         "numpy",
+        "packaging",
     ],
     tests_require=["dateutil", "h5py", "netcdf4", "numpy", "pytest", "scipy"],
 )

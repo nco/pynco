@@ -7,8 +7,7 @@ import re
 import shlex
 import subprocess
 import tempfile
-
-from distutils.version import LooseVersion
+from packaging.version import parse as parse_version
 
 
 class NCOException(Exception):
@@ -281,7 +280,7 @@ class Nco(object):
             # and their ancillaries from outputOperatorsPattern
             if operator_appends and nco_command == "ncks":
                 nco_version = self.version()
-                if LooseVersion(nco_version) >= LooseVersion("4.3.7"):
+                if parse_version(nco_version) >= parse_version("4.3.7"):
                     self.outputOperatorsPattern = [
                         "-r",
                         "--revision",
