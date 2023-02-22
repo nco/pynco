@@ -14,9 +14,13 @@ _DATESTR_FORMAT_MONTHLY = "Foo.bar.ha.%Y-%m.nc"
 
 
 @pytest.fixture(scope="module")
-def cleandir():
-    newpath = tempfile.mkdtemp()
-    os.chdir(newpath)
+def cleandir(request, tmpdir_factory):
+    module_dir = tmpdir_factory.mktemp(
+        "m-{name}-".format(name=request.module.__name__))
+    old_pwd = os.getcwd()
+    os.chdir(module_dir)
+    yield module_dir
+    os.chdir(old_pwd)
 
 
 @pytest.fixture(scope="module")

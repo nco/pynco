@@ -6,6 +6,9 @@ import os
 from nco import Nco
 
 
+pytestmark = pytest.mark.usefixtures("cleandir")
+
+
 @pytest.mark.usefixtures("cleandir")
 def test_ncks_hdf2nc(hdf_file):
     """

@@ -30,6 +30,9 @@ ops = [
 ]
 
 
+pytestmark = pytest.mark.usefixtures("cleandir")
+
+
 def test_nco_present():
     ncopath = distutils.spawn.find_executable("ncks")
     # ncopath = which('ncks')
