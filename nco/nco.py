@@ -2,8 +2,9 @@
 nco module.  Use Nco class as interface.
 """
 import distutils.spawn
-import os
+import os.path
 import re
+import shlex
 import subprocess
 import tempfile
 
@@ -106,43 +107,46 @@ class Nco(object):
 
     def call(self, cmd, inputs=None, environment=None, use_shell=False):
 
-        inline_cmd = cmd
+        cmd = list(cmd)
         if inputs is not None:
             if isinstance(inputs, str):
-                inline_cmd.append(inputs)
+                cmd.append(inputs)
             else:
                 # assume it's an iterable
-                inline_cmd.extend(inputs)
+                cmd.extend(inputs)
 
         if self.debug:
             print("# DEBUG ==================================================")
             if environment:
                 for key, val in list(environment.items()):
                     print("# DEBUG: ENV: {0} = {1}".format(key, val))
-            print("# DEBUG: CALL>> {0}".format(" ".join(inline_cmd)))
+            print("# DEBUG: CALL>> {0}".format(" ".join(map(shlex.quote, cmd))))
             print("# DEBUG ==================================================")
 
         # if we're using the shell then we need to pass a single string as the
         # command rather than in iterable
         if use_shell:
-            inline_cmd = " ".join(inline_cmd)
+            shell_cmd = " ".join(map(shlex.quote, cmd))
+            try:
+                proc = subprocess.Popen(
+                    shell_cmd,
+                    shell=True,
+                    stderr=subprocess.PIPE,
+                    stdout=subprocess.PIPE,
+                    env=environment,
+                )
+            except OSError:
+                # Argument list may have been too long, so don't use a shell
+                use_shell = False
 
-        try:
+        if not use_shell:
             proc = subprocess.Popen(
-                inline_cmd,
-                shell=use_shell,
+                cmd,
                 stderr=subprocess.PIPE,
                 stdout=subprocess.PIPE,
                 env=environment,
             )
-        except OSError:
-            # Argument list may have been too long, so don't use a shell
-            proc = subprocess.Popen(
-                inline_cmd,
-                stderr=subprocess.PIPE,
-                stdout=subprocess.PIPE,
-                env=environment,
-            )
+
         retvals = proc.communicate()
         return {
             "stdout": retvals[0],
@@ -158,8 +162,10 @@ class Nco(object):
                 )
             )
         if retvals["returncode"] != 0:
-            print("Error in calling operator {method} with:".format(method=method_name))
-            print(">>> {command} <<<".format(command=" ".join(cmd)))
+            print("Error in calling operator {method} with:".format(
+                method=method_name))
+            print(">>> {command} <<<".format(
+                command=" ".join(map(shlex.quote, cmd))))
             print("Inputs: {0!s}".format(inputs))
             print(retvals["stderr"])
             return True
@@ -193,7 +199,7 @@ class Nco(object):
             return_array = kwargs.pop("returnArray", False)
             return_ma_array = kwargs.pop("returnMaArray", False)
             operator_prints_out = kwargs.pop("operator_prints_out", False)
-            use_shell = kwargs.pop("use_shell", True)
+            use_shell = kwargs.pop("use_shell", False)
 
             # build the NCO command
             # 1. the NCO operator
@@ -202,9 +208,9 @@ class Nco(object):
             if options:
                 for option in options:
                     if isinstance(option, str):
-                        cmd.extend(str.split(option))
+                        cmd.extend(shlex.split(option))
                     elif hasattr(option, "prn_option"):
-                        cmd.extend(option.prn_option().split())
+                        cmd.extend(option.prn_option())
                     else:
                         # assume it's an iterable
                         cmd.extend(option)
@@ -320,7 +326,7 @@ class Nco(object):
                 elif not (nco_command in self.SingleFileOperatorsPattern):
                     # create a temporary file, use this as the output
                     file_name_prefix = (
-                        nco_command + "_" + input.split(os.sep)[-1]
+                        nco_command + "_" + os.path.basename(input)
                     )
                     tmp_file = tempfile.NamedTemporaryFile(
                         mode="w+b",
@@ -410,7 +416,7 @@ class Nco(object):
         if self.has_nco():
             call = [os.path.join(self.nco_path, "ncra"), "--version"]
             proc = subprocess.Popen(
-                " ".join(call), stderr=subprocess.PIPE, stdout=subprocess.PIPE
+                call, stderr=subprocess.PIPE, stdout=subprocess.PIPE
             )
             retvals = proc.communicate()
             print(retvals)
