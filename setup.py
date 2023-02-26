@@ -16,7 +16,6 @@ setup(
     packages=["nco"],
     py_modules=["nco.nco", "nco.custom"],
     url="https://github.com/nco/pynco",
-    download_url="https://raw2.github.com/nco/pynco/tarball/{0}".format(version),
     keywords=["netcdf", "climate"],
     classifiers=[
         "Development Status :: 4 - Beta",
@@ -29,5 +28,4 @@ setup(
         "numpy",
         "packaging",
     ],
-    tests_require=["dateutil", "h5py", "netcdf4", "numpy", "pytest", "scipy"],
 )
