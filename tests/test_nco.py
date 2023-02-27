@@ -3,7 +3,7 @@ Unit tests for nco.py.
 """
 import distutils.spawn
 import os
-from unittest.mock import MagicMock
+import subprocess
 
 import netCDF4
 import numpy as np
@@ -112,6 +112,38 @@ def test_ncea_mult_files(foo_nc, bar_nc):
     nco = Nco(debug=True)
     infiles = [foo_nc, bar_nc]
     nco.ncea(input=infiles, output="out.nc")
+
+
+def test_overwrite_existing_file(foo_nc, tmp_path, monkeypatch):
+    """
+    By default the nco tools will prompt the user before overwriting a file.
+    The output of all commands is collected by pynco
+    so the user will never see the prompt.
+    This can result in `nco.ncatted` etc hanging indefinitely waiting for input
+    that will never come.
+    """
+    outfile = str(tmp_path / 'out.nc')
+    with open(outfile, 'w') as f:
+        f.write('boop')
+
+    # Monkeypatch `Popen.communicate` to have a default timeout value
+    # so that a failed test here doesn't cause the test suite to hang.
+    class PopenTimeout(subprocess.Popen):
+        def communicate(self, *args, timeout=2, **kwargs):
+            return super().communicate(*args, timeout=timeout, **kwargs)
+
+    monkeypatch.setattr(subprocess, 'Popen', PopenTimeout)
+
+    # Disable forced overwriting of files to expose this potential issue.
+    # This method is one of many.
+    nco = Nco(debug=True, force_output=False)
+    with pytest.raises(NCOException):
+        # This should fail with an NCOException because the tool aborted when
+        # it did not get user input.
+        # The test fails if a subprocess.TimeoutExpired exception is raised.
+        nco.ncatted(input=foo_nc, output=outfile, options=[
+            '-a', 'att_name,time,o,c,value',
+        ])
 
 
 def test_error_exception():
