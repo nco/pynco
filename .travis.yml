@@ -7,10 +7,19 @@ matrix:
   fast_finish: true
   include:
   - env:
-    - CONDA_ENV=3.6
+    - CONDA_ENV=3.7
     - NCO_VERSION=latest
   - env:
-    - CONDA_ENV=3.7
+    - CONDA_ENV=3.8
+    - NCO_VERSION=latest
+  - env:
+    - CONDA_ENV=3.9
+    - NCO_VERSION=latest
+  - env:
+    - CONDA_ENV=3.10
+    - NCO_VERSION=latest
+  - env:
+    - CONDA_ENV=3.11
     - NCO_VERSION=latest
 
 before_install:
