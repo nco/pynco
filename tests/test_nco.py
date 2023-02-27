@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 """
 Unit tests for nco.py.
 """
@@ -28,6 +27,9 @@ ops = [
     "ncrename",
     "ncwa",
 ]
+
+
+pytestmark = pytest.mark.usefixtures("cleandir")
 
 
 def test_nco_present():

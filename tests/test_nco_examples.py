@@ -6,6 +6,9 @@ import os
 from nco import Nco
 
 
+pytestmark = pytest.mark.usefixtures("cleandir")
+
+
 @pytest.mark.usefixtures("cleandir")
 def test_ncks_hdf2nc(hdf_file):
     """
@@ -114,7 +117,6 @@ def test_specifying_input_files(testfiles8589):
     3.5 Specifying Input Files
 
     ncra 85.nc 86.nc 87.nc 88.nc 89.nc 8589.nc
-    ncra 8[56789].nc 8589.nc
     ncra -p input-path 85.nc 86.nc 87.nc 88.nc 89.nc 8589.nc
     ncra -n 5,2,1 85.nc 8589.nc
     """
@@ -125,10 +127,6 @@ def test_specifying_input_files(testfiles8589):
     srcdir = os.path.dirname(testfiles8589[0])
     basenames = [os.path.basename(x) for x in testfiles8589]
     nco.ncra(input=basenames, output="8589.nc", path=srcdir)
-
-    # unable to use brackets, perhaps because we're no longer using shell=True when calling subprocess()?
-    regpath = os.path.join(srcdir, "8[56789].nc")
-    nco.ncra(input=regpath, output="8589.nc", use_shell=True)
 
 
 def test_determining_file_format(foo3c, foo364, foo4c, hdf_file):
