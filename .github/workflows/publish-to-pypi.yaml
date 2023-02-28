@@ -1,0 +1,66 @@
+name: Publish a new version to PyPI
+on:
+  # This allows manually triggering a release
+  workflow_dispatch:
+
+  # This will automatically publish tagged commits matching a version number
+  #
+  #   push:
+  #     tags:
+  #       - "[0-9]+.*"
+
+env:
+  package-name: "nco"
+  python-version: "3.11"
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - uses: actions/setup-python@v4
+        with:
+          python-version: ${{ env.python-version }}
+          cache: 'pip'
+
+      - name: Build python package
+        shell: bash -l {0}
+        run: |
+          pip install build
+          python3 -m build
+
+      - name: Store package artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: "Python package"
+          path: "dist/"
+
+      - name: Check tag matches version
+        shell: bash -l {0}
+        run: |
+          if ! [[ "${{ github.ref }}" == refs/tags/* ]] ; then
+            echo >&2 "Current ref is not a tag - not publishing to PyPI!"
+            exit 1
+          fi
+
+          VERSION="$( echo "${{ github.ref }}" | sed 's!refs/tags/!!' )"
+          echo "Looking for packages with version $VERSION"
+          ls -l dist/*
+          packages=(
+            "dist/${{ env.package-name }}-$VERSION.tar.gz"
+            "dist/${{ env.package-name }}-$VERSION-*.whl"
+          )
+          for package in "${packages[@]}" ; do
+            if ! test -e $package ; then
+              echo >&2 "Could not find package file $package"
+              exit 1
+            fi
+          done
+
+      - name: Publish Python package
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          password: ${{ secrets.PYPI_API_TOKEN }}
