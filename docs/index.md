@@ -165,6 +165,10 @@ nco.ncatted(input="in.nc",options=[
 The Atted object is a helper for the `-a` command-line switch in ncatted:
 
 ```python
+from nco import Nco
+from nco.custom import Atted
+
+nco = Nco()
 opt = [
     Atted("o", "units", "temperature", "Kelvin"),
     Atted("c", "min", "temperature", 0.16, 'd'),
@@ -177,6 +181,10 @@ nco.ncatted(input="in.nc", options=opt)
 Using keyword arguments can add even more clarity:
 
 ```python
+from nco import Nco
+from nco.custom import Atted
+
+nco = Nco()
 opt = [
     Atted(mode="overwrite", att_name="units", var_name="temperature", value="Kelvin", stype="c"),
     Atted(mode="create", att_name="min", var_name="temperature", value=0.16, stype='d' ),
@@ -212,6 +220,10 @@ ncks -d time,0,8,2 -d time,10 -d lat,-20.0,20.0 -d lon,50.0,350.0  -d lev,,,4
 **pynco**
 
 ```python
+from nco import Nco
+from nco.custom import Limit, LimitSingle
+
+nco = Nco()
 opt = [
     Limit("time", 0, 8, 2),
     LimitSingle("time", 10),
@@ -235,6 +247,10 @@ ncrename -v p,pressure -v t,temperature in.nc
 **pynco**
 
 ```python
+from nco import Nco
+from nco.custom import Rename
+
+nco = Nco()
 rDict = {
     'p': 'pressure',
     't': 'temperature'
