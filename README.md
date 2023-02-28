@@ -22,7 +22,7 @@ conda install -c conda-forge pynco
 
 ### PyPI Installation
 
-Please see [the requirements](#requirements) before installing
+Please see [the requirements](https://pynco.readthedocs.org/en/latest/#requirements) before installing
 
 ```bash
 pip install nco
