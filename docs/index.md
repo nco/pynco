@@ -194,7 +194,7 @@ opt = [
 nco.ncatted(input="in.nc", options=opt)
 ```
 
-`mode` can be the single character abbreviations as per `ncatted`: `a, c, d, m, n, o` or the long form equivalents `append, create, delete, modify, overwrite`.
+`mode` can be the single character abbreviations as per `ncatted`: `a, c, d, m, n, o, p` or the long form equivalents `append, create, delete, modify, nappend, overwrite, prepend`.
 
 `value` can be a single value, a list, iterable, or a numpy array.
 
