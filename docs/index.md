@@ -77,7 +77,7 @@ See the examples for usage.
 ####  File information
 
 ```python
-ncdump_string = nco.ncdump(input=ifile)
+ncks_emulating_ncdump_string = nco.ncks(input=ifile)
 ```
 
 ####  Operators with user defined regular output files
