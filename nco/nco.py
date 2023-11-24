@@ -1,7 +1,7 @@
 """
 nco module.  Use Nco class as interface.
 """
-import distutils.spawn
+import shutil
 import os.path
 import re
 import shlex
@@ -52,7 +52,7 @@ class Nco(object):
         if "NCOpath" in os.environ:
             self.nco_path = os.environ["NCOpath"]
         else:
-            self.nco_path = os.path.split(distutils.spawn.find_executable("ncks"))[0]
+            self.nco_path = os.path.split(shutil.which("ncks"))[0]
 
         self.operators = operators
         self.return_cdf = returnCdf
