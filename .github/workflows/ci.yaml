@@ -20,7 +20,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        tox-env: ["py37", "py38", "py39", "py310", "py311"]
+        tox-env: ["py38", "py39", "py310", "py311"]
 
     steps:
       - uses: actions/checkout@v3
