@@ -30,7 +30,7 @@ $ pip install nco
 
 -  ***Platform***: Unix or Mac OS (Windows has not been tested)
 -  [NetCDF Operators (NCO)](http://nco.sourceforge.net/) - Version 4.6.9 or later. We don't test against every NCO version.
--  Python 3.7 or later
+-  Python 3.8 or later
 
 **Recommended**
 
